@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { copy } from "../lib/copy";
+import { copy, dataCopy } from "../lib/copy";
 
 test("navigates the desk and resets the hero without a token", async ({ page }) => {
   await page.route("**/api/health", route => route.fulfill({ json: {
@@ -20,7 +20,7 @@ test("navigates the desk and resets the hero without a token", async ({ page }) 
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("navigation").getByRole("link", { name: copy.data.th }).click();
   await expect(page).toHaveURL(/\/data\?scenario=hero$/);
-  await expect(page.getByRole("heading", { name: copy.data.th })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: new RegExp(dataCopy.title.th) })).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: copy.built.th }).click();
   await expect(page.getByRole("heading", { name: copy.built.th })).toBeVisible();
 });
