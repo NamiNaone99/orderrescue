@@ -44,4 +44,10 @@ The recovery pass exercised a refused reset and subsequent reload, typing a peri
 | `pnpm exec cross-env BASE_URL=http://127.0.0.1:3230 pnpm e2e --reporter=line` | 24 Chromium checks passed in 2.5 minutes. |
 | Local Playwright capture and recovery passes | Completed the native-control tour and receipt reload at both sizes, checked the budget and failures above, and visually reviewed all 16 PNGs. |
 
-The coordinator owns PR integration and the post-merge production tour.
+## Post-merge production verification
+
+[PR #23](https://github.com/NamiNaone99/orderrescue/pull/23) merged at `5f3d48f`. The integrated memory/offline run passed 297 unit tests, 51 domain tests under each of UTC and Asia/Bangkok, and all 25 Chromium tests in 2.7 minutes. Nineteen opt-in hosted Store tests were skipped in that run.
+
+At 14:13 ICT on 21 November 2026, the release owner ran production Playwright against `5f3d48f` with healthy Supabase and OpenAI. All eight tour positions appeared with presenter notes. The live hero returned first-come 1/2 at ฿32 and joint 2/2 at ฿88. After B slipped to 14:30, Confirm was disabled. An explicit replan served only #102/B and sent #101 to the operator.
+
+The tour issued one hero reset and submitted one reservation. HTTP 201 returned receipt `bc548ef6-6aaf-4b80-99ec-d879729f9cd1` for eight units from B at ฿32. B's free stock fell from eight units to zero. The CSV downloaded as `orderrescue-bc548ef6-6aaf-4b80-99ec-d879729f9cd1.csv`. Reload recovered the same receipt. The presenter chose Finish and Keep, then the release owner restored and verified the pristine hero separately. The [post-UI architecture review](architecture-post-ui.md) checks stock polling after receipt reload.
