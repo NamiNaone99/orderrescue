@@ -50,6 +50,7 @@ async function expectError(response: Response, status: number, code: ErrorCode) 
 }
 
 beforeEach(async () => {
+  vi.stubGlobal("orderRescuePlanningBucket", undefined);
   vi.stubEnv("STORAGE_MODE", "memory");
   vi.spyOn(console, "info").mockImplementation(() => {});
   await getStore().reset("hero");
@@ -57,6 +58,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
 

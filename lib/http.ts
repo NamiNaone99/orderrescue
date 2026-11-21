@@ -19,7 +19,7 @@ const errors = {
 } as const satisfies Record<ErrorCode, readonly [number, string]>;
 
 export class ApiError extends Error {
-  constructor(readonly code: ErrorCode) {
+  constructor(readonly code: ErrorCode, readonly status: number = errors[code][0]) {
     super(errors[code][1]);
     this.name = "ApiError";
   }
@@ -41,12 +41,33 @@ export function readQuery<T>(request: Request, schema: z.ZodType<T>): T {
   return parseInput(Object.fromEntries(entries), schema);
 }
 
+const maxBodyBytes = 16 * 1024;
+
 export async function readBody<T>(request: Request, schema: z.ZodType<T>): Promise<T> {
+  if (!request.body || request.body.locked) throw new ApiError("INVALID_INPUT");
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
   let input: unknown;
   try {
-    input = await request.json();
-  } catch {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maxBodyBytes) {
+        // A slow or disconnected sender must not delay the response during cancellation.
+        void reader.cancel().catch(() => {});
+        throw new ApiError("INVALID_INPUT", 413);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    input = JSON.parse(text + decoder.decode());
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw new ApiError("INVALID_INPUT");
+  } finally {
+    reader.releaseLock();
   }
   return parseInput(input, schema);
 }
@@ -69,7 +90,8 @@ export async function apiRoute(request: Request, handle: (log: RequestLog) => Pr
   } catch (error) {
     code = error instanceof StoreError || error instanceof ApiError || error instanceof InvalidMessageError
       ? error.code : "INTERNAL";
-    const [status, message] = errors[code];
+    const [defaultStatus, message] = errors[code];
+    const status = error instanceof ApiError ? error.status : defaultStatus;
     response = Response.json({ error: { code, message, request_id: requestId } }, { status, headers });
   }
   console.info(JSON.stringify({

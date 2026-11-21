@@ -60,9 +60,9 @@ Local checks used Windows, Node 22.20.0, memory storage and offline interpretati
 | `pnpm lint` | Passed. |
 | `pnpm typecheck` | Passed. |
 | `pnpm build`, then `pnpm start` | Production build passed and the local production server served the desk and API. |
-| `pnpm test` | 249 passed after the build. The 19 opt-in hosted database contracts were skipped. |
+| `pnpm test` | 278 passed after the T22 build, including the browser-asset scan. The 19 opt-in hosted database contracts were skipped. |
 | `pnpm test:tz` | 48 domain checks passed in UTC and 48 passed in Asia/Bangkok. |
-| `pnpm e2e` | All 22 local Chromium cases passed in 2.4 minutes. |
+| `pnpm e2e` | All 23 local Chromium cases passed in 2.3 minutes after the T22 fixes. |
 | `pnpm smoke` | All 4 local smoke checks passed. |
 | `pnpm audit --prod` | One moderate advisory in `minimatch@10.2.6`, pulled in by shadcn through ts-morph. Exit 1. [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) |
 | `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
@@ -88,12 +88,14 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 4. **Service fallback.** The live interpreter tries its second model after a failed attempt, then uses the offline reader. A depleted live quota also selects offline. A degraded database can serve memory reads and refuses writes.
 5. **Demo fallback.** Use healthy production, then offline interpretation, then explicitly selected memory storage. On the fallback laptop, run `pnpm build` followed by `pnpm start` in memory/offline mode. A team-prepared recording is the final option when available.
 
+Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
+
 ## Limitations and scope
 
 1. The wholesaler workflow is a hypothesis. Customer usage has yet to be observed.
 2. The real-day benefit depends on simulated inventory, deadlines, readiness and costs.
 3. UK retail invoices stand in for a Thai wholesaler's order book.
-4. The three-message smoke covers the supplied samples. Real warehouse language still needs independent evaluation.
+4. The three-message smoke covers the supplied samples. The validator checks for warehouse and time cues, including known shifts and written times. Spoken Thai aliases and times still rely on model interpretation, and unfamiliar phrasing can require clarification. Real warehouse language still needs independent evaluation.
 5. Each plan handles one SKU, with a whole order line assigned to one warehouse.
 6. Readiness is one timestamp per warehouse/SKU. Transport routing, vehicle capacity and travel times remain outside the model.
 7. The search stops at 200,000 nodes and labels the best result found if the search is incomplete. The planning API rejects incidents affecting more than 60 orders.
@@ -101,11 +103,18 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 9. Messages are pasted or selected from samples. There is no LINE or WhatsApp integration.
 10. This was a one-day build. Security and load verification are limited to the recorded checks.
 
+### Open review findings
+
+The frozen implementation at `17a9dc5` had five P2 limitations. [T22 findings and acceptance coverage](docs/codex-log/T22-review.md)
+
+- Each model attempt has a nine-second deadline. The initial database read can push the full Interpret request beyond the 25-second target. Per-model logs omit the HTTP request ID, which makes it difficult to match attempts to simultaneous requests.
+- At the reviewed commit the committed suite lacked T14's generated first-come comparison, independent full-objective oracle and timed 40-order test. The hero and 12-order results have fixture-specific checks.
+- A continuously focused desk can keep displaying the previous storage mode after an operational read falls back to memory. The store still refuses writes on the affected instance.
+- The API accepts budgets above ฿2,147,483,647. PostgreSQL uses a signed 32-bit integer for booking budgets and rejects larger values.
+
 ### Not built
 
 Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The `/built-with-codex` page currently shows a placeholder. The build evidence is in the logs below.
-
-The shared plan/booking rate limit and request-body size cap in the specification are pending. The interpreter quota and public hero reset limit are implemented.
 
 ### Accessibility evidence
 
