@@ -22,7 +22,7 @@ export function StaleBanner({ changes, refusal, pending, replan }: {
 }) {
   const button = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (document.querySelector(".guide-popup")) return;
+    if (document.querySelector(".guide-popup, .dispatch[data-touring]")) return;
     button.current?.focus({ preventScroll: true });
     const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     button.current?.closest("section")?.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "instant" });

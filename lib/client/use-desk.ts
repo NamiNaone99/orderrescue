@@ -250,6 +250,6 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
         }
     }
   }
-  return { s, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan,
+  return { s, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan, refresh,
     closeDialog: () => dispatch({ type: "dialog", confirmation: null }), startAgain: () => load(true) };
 }

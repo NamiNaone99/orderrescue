@@ -10,6 +10,9 @@ export type ShellScenario = Pick<Scenario, "id" | "name_th" | "name_en" | "kind"
 
 const ActiveScenario = createContext<ShellScenario | null>(null);
 
+const DeskQuery = createContext("");
+export const useDeskQuery = () => useContext(DeskQuery);
+
 export function useScenario(): ShellScenario {
   const scenario = useContext(ActiveScenario);
   if (!scenario) throw new Error("Missing scenario context");
@@ -24,11 +27,12 @@ function Shell({ scenarios, scenario, query, children }: ShellProps & { scenario
   const [revision, setRevision] = useState(0);
   function href(path: string, id = scenario.id) {
     const params = new URLSearchParams(query);
+    for (const key of ["tour", "tourRun", "notes", "receipt"]) params.delete(key);
     params.set("scenario", id);
     return path + "?" + params.toString();
   }
   return (
-    <ActiveScenario.Provider value={scenario}>
+    <DeskQuery.Provider value={query}><ActiveScenario.Provider value={scenario}>
       <Header scenarios={scenarios} scenario={scenario} pathname={pathname} href={href}
         onSelect={(id) => router.push(href(pathname, id), { scroll: false })}
         onReset={() => {
@@ -37,7 +41,7 @@ function Shell({ scenarios, scenario, query, children }: ShellProps & { scenario
           router.refresh();
         }} />
       <main id="desk-main" className="workspace" key={scenario.id + revision}>{children}</main>
-    </ActiveScenario.Provider>
+    </ActiveScenario.Provider></DeskQuery.Provider>
   );
 }
 
@@ -49,7 +53,9 @@ function QueryObserver({ onChange }: { onChange: (query: string) => void }) {
 
 export function ScenarioShell({ scenarios, children }: ShellProps) {
   const [query, setQuery] = useState("");
-  const id = new URLSearchParams(query).get("scenario") ?? "hero";
+  const params = new URLSearchParams(query);
+  const pathname = usePathname();
+  const id = pathname === "/" && params.get("tour") === "1" ? "hero" : params.get("scenario") ?? "hero";
   const scenario = scenarios.find(item => item.id === id) ?? scenarios.find(item => item.id === "hero") ?? scenarios[0];
   return <ServiceHealthProvider>
     <Suspense fallback={null}><QueryObserver onChange={setQuery} /></Suspense>
