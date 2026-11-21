@@ -1,6 +1,6 @@
 # OrderRescue Codex log
 
-The project started at 10:00 ICT on 21 Nov 2026 with no application code. The team prepared the specifications before the event for a separate commit under `docs/`. This checkout starts with the T00 scaffold commit. The supplied specifications are in the untracked `event-day/` folder, and the separate documentation commit is unverified.
+Application development started at 10:25 ICT on 21 Nov 2026. The team prepared the specifications before the event and committed them under `docs/` in `862a306`.
 
 Times are ICT on 21 Nov 2026. Minutes are rounded elapsed time. Blank human-correction cells are for the team to fill in.
 
@@ -8,6 +8,11 @@ Times are ICT on 21 Nov 2026. Minutes are rounded elapsed time. Blank human-corr
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 10:35 | T00 | P3 | local | gpt-6.2-astra | Scaffold Next.js and Windows tooling | `9376c67` | 10 | Unrecorded | 1 time-zone test | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
 | 10:47 | T01 | P3 | local | gpt-6.2-astra | Set up agent instructions, planning and the Codex log | `T01: add agent instructions, plan template and Codex log` | 3 | Unrecorded | 0 | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
+| 10:50 | T02 | Codex | local | gpt-6.2-astra | Define contracts, time helpers and the synthetic hero | `8c3bc37` on main | 4 | Unrecorded | 47 | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
+| 10:58 | T03 | Codex | local + review | gpt-6.2-astra | Compare first-come and joint allocations | [PR #1](https://github.com/NamiNaone99/orderrescue/pull/1), `882f72c` | 10 | Unrecorded | 26 | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
+| 11:10 | T04 | Codex | local + review | gpt-6.2-astra | Book confirmed stock atomically and replay once | [PR #2](https://github.com/NamiNaone99/orderrescue/pull/2), `bdfa711` | 7 | Unrecorded | 28 | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
+| 11:23 | T05 | Codex | local | gpt-6.2-astra | Validate interpreter answers and fall back offline | [PR #3](https://github.com/NamiNaone99/orderrescue/pull/3), `3c8ee19` | 7 | Unrecorded | 59 | | `01a1fc29-d56b-7da2-8627-f3d104d6cf4c` |
+| 11:39 | T07 | Codex | local | gpt-6.2-astra | Add GitHub CI and a Chromium home smoke | [t07-ci PR](https://github.com/NamiNaone99/orderrescue/pulls?q=head%3At07-ci), lint, types, 161 tests and Chromium smoke passed locally, PR CI pending | 5 | Unrecorded | 1 | | `01a1fc3a-3a11-7611-8652-7ff48477cf53` |
 
 ## Codex features used
 
