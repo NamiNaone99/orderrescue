@@ -21,6 +21,8 @@ Try ฿87 to give the one affordable slot to #101, or ฿31 to see both orders g
 
 **เริ่มสาธิต / Start demo** opens an eight-step interactive tour and resets the shared hero. The presenter-notes link adds a speaking line and timer. Each state-changing step uses the desk's real controls. Reviewing the booking and submitting it are separate actions. Reloading the public receipt link restores the booking and refreshes its stock panel. [Guided tour](docs/codex-log/TOUR.md) · [Receipt and stock refresh](docs/codex-log/TOUR-F1.md)
 
+Below the plan, open **งบเท่าไหร่ ส่งทันกี่ออเดอร์ / Budget frontier** to try the budget slider. The hero delivers zero orders below ฿32, one at ฿32 and both at ฿88. A marker shows the current budget. For larger comparisons, dashed steps show the minimum number of orders demonstrated at the sampled budgets. Open **ทำไมถึงเป็นแผนนี้ / Why this plan** to see each warehouse's cost and the reason for each choice. After B's delay, #102 can still ship from B for ฿32 or C for ฿56, so choosing B saves ฿24. Both panels use the deterministic planner's results. [Screenshots and checks](docs/codex-log/INSIGHTS.md)
+
 ## How it works
 
 1. **Interpret.** The server reads the message with the OpenAI Responses API or matches a scenario sample in offline mode.
