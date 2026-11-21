@@ -5,7 +5,7 @@ import {
 } from "@/lib/domain/contracts";
 import type { Reservation, ScenarioId, Snapshot } from "@/lib/domain/types";
 import { scenarioRegistry } from "@/lib/scenarios";
-import { stateVersion, StoreError, type SnapshotOptions, type Store, type StoreSnapshot } from "./types";
+import { filterSnapshot, stateVersion, StoreError, type SnapshotOptions, type Store, type StoreSnapshot } from "./types";
 
 const seeds = new Map(Object.values(scenarioRegistry).map(seed => [seed.snapshot.scenario.id, seed]));
 const runtime = globalThis as typeof globalThis & { orderRescueMemorySnapshots?: Map<ScenarioId, Snapshot> };
@@ -110,21 +110,7 @@ function book(snapshot: Snapshot, request: ReservationRequest): Reservation {
 
 export class MemoryStore implements Store {
   async getSnapshot(scenarioId: ScenarioId, opts: SnapshotOptions = {}): Promise<StoreSnapshot> {
-    const stored = snapshotFor(scenarioId);
-    if (opts.sku !== undefined) requireSku(stored, opts.sku);
-    const snapshot = structuredClone(stored);
-    const state_version = stateVersion(snapshot);
-    if (opts.sku !== undefined || opts.openSkusOnly) {
-      const open = new Set(snapshot.orders.filter(order => order.status === "open").map(order => order.id));
-      const visible = opts.sku !== undefined ? new Set([opts.sku])
-        : new Set(snapshot.order_lines.filter(line => open.has(line.order_id)).map(line => line.sku_id));
-      snapshot.skus = snapshot.skus.filter(sku => visible.has(sku.id));
-      snapshot.stock = snapshot.stock.filter(row => visible.has(row.sku_id));
-      snapshot.order_lines = snapshot.order_lines.filter(line => visible.has(line.sku_id));
-      const orderIds = new Set(snapshot.order_lines.map(line => line.order_id));
-      snapshot.orders = snapshot.orders.filter(order => orderIds.has(order.id));
-    }
-    return { ...snapshot, state_version };
+    return filterSnapshot(structuredClone(snapshotFor(scenarioId)), opts);
   }
 
   async reserve(input: ReservationRequest): Promise<ReservationResponse> {

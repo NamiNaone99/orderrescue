@@ -15,7 +15,8 @@
     "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/eval.ts",
     "try:interpret": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/try-interpret.ts",
     "test:db": "node --env-file=.env.local node_modules/vitest/vitest.mjs run tests/store/supabase.test.ts",
-    "data:build": "tsx scripts/build-dataset.ts"
+    "data:build": "tsx scripts/build-dataset.ts",
+    "data:seed-sql": "tsx scripts/seed-sql.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
