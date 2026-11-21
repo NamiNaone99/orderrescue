@@ -56,7 +56,8 @@ afterEach(() => {
 });
 
 describe("POST /api/interpret", () => {
-  it("returns the validated offline hero incident while no provider is installed", async () => {
+  it("returns the validated offline hero incident when no key is configured", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
     expect(runtime.getInterpreterMode()).toEqual({ interpreter: "offline", model: null });
     expect(await interpretMessage()).toMatchObject({
       outcome: "incident", incident: { warehouse_id: "A", sku_ids: ["SKU-X"] },
