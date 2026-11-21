@@ -6,9 +6,9 @@ Thai is the primary language of the interface. English appears as secondary text
 
 On opening the production URL (hero scenario preloaded, nothing to configure):
 
-1. The warehouse message, already in the input: `คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้`.
-2. One primary button: `วิเคราะห์ข้อความ` (Analyse).
-3. After one click: two result cards side by side, `มาก่อนได้ก่อน 1/2` against `จัดร่วมกัน 2/2`, with THB 32 and THB 88, and the two orders moving to different warehouses.
+1. The desk title asks `เตรียมของไม่ทันรอบส่ง?` The warehouse message is already in the input: `คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ`.
+2. One primary button: `เช็กออเดอร์เสี่ยง` (Check orders at risk).
+3. After one click: the summary shows one more order on time for THB 56. The cards show `ส่งตามคิวเดิม 1/2` against `จัดคลังใหม่ 2/2`, with THB 32 and THB 88 and the assigned warehouses.
 4. A visible label: `ข้อมูลสมมติ (Synthetic scenario)` and badges showing which interpreter and which storage answered.
 
 No landing page, no login, no modal on load.
@@ -145,7 +145,7 @@ Check every text/background pair for 4.5:1 contrast (3:1 for large text and icon
 
 ## 8. Typography
 
-- Font: Noto Sans Thai via `next/font/google`, subsets `thai` and `latin`, `display: swap`, CSS variable `--font-sans`; `<html lang="th">`. If the venue network blocks the font download, commit the `.woff2` files and switch to `next/font/local`.
+- Font: IBM Plex Sans Thai served by the Next.js build via Fontsource, in weights 400, 500, 600 and 700 with `display: swap`, CSS variable `--font-sans` and `<html lang="th">`.
 - Scale: hero numbers 48/52 semibold; page title 24/32; card title 18/28; body 16/26 (Thai needs generous line height); small 14/22. Nothing below 14 px.
 - `font-variant-numeric: tabular-nums` on all quantities, times and money.
 - English secondary labels: 14 px, muted colour, `lang="en"`.

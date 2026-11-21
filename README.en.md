@@ -12,7 +12,7 @@ Team AornSorn started application development on 21 Nov 2026 at 10:25 ICT.
 
 ## Try the synthetic hero
 
-Open the desk and select **วิธีใช้เดโม** for the read-only Thai walkthrough. Select the hero scenario and analyse **คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้**. At 12:30, warehouse A reports that it cannot pick SKU-X from 13:00 to 18:00. Both orders need eight units. B has eight free at 13:30 for ฿4 per unit. C has eight free at 15:00 for ฿7 per unit. The budget is ฿100. [Open the live desk](https://orderrescue.vercel.app)
+Open the desk and select **วิธีใช้เดโม** for the read-only Thai walkthrough. Select the hero scenario and analyse **คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ**. At 12:30, warehouse A reports that it cannot pick SKU-X from 13:00 to 18:00. Both orders need eight units. B has eight free at 13:30 for ฿4 per unit. C has eight free at 15:00 for ฿7 per unit. The budget is ฿100. [Open the live desk](https://orderrescue.vercel.app)
 
 | Strategy | #101, due 14:00 | #102, arrived first, due 16:00 | On time | Extra cost |
 | --- | --- | --- | --- | --- |
@@ -25,7 +25,7 @@ Try ฿87 to give the one affordable slot to #101, or ฿31 to see both orders g
 
 Below the plan, open **งบเท่าไหร่ ส่งทันกี่ออเดอร์ / Budget frontier** to try the budget slider. The hero delivers zero orders below ฿32, one at ฿32 and both at ฿88. A marker shows the current budget. For larger comparisons, dashed steps show the minimum number of orders demonstrated at the sampled budgets. Open **ทำไมถึงเป็นแผนนี้ / Why this plan** to see each warehouse's cost and the reason for each choice. After B's delay, #102 can still ship from B for ฿32 or C for ฿56, so choosing B saves ฿24. Both panels use the deterministic planner's results. [Screenshots and checks](docs/codex-log/INSIGHTS.md)
 
-Use **แชตจากคลัง / Warehouse chat** to report a delay, newly found stock or a return to picking. Try **รถสาขา B ออกได้บ่ายสองครึ่ง**. Review the warehouse, SKU, time and quoted message. Confirming the report changes the stock row and marks the old plan stale. Select Replan to serve #102 from B for ฿32. Existing receipts keep their original rows. The conversation stays in the current page session. The store records the confirmed event as structured data. [Chat examples and checks](docs/codex-log/CHAT.md)
+Use **อัปเดตจากคลัง / Warehouse chat** to report a delay, newly found stock or a return to picking. Try **รถสาขา B ออกได้บ่ายสองครึ่ง**. Review the warehouse, SKU, time and quoted message. Confirming the report changes the stock row and marks the old plan stale. Select Replan to serve #102 from B for ฿32. Existing receipts keep their original rows. The conversation stays in the current page session. The store records the confirmed event as structured data. [Chat examples and checks](docs/codex-log/CHAT.md)
 
 ## How it works
 
@@ -158,7 +158,7 @@ The team prepared specifications and task prompts before the event. During the b
 ## Third-party data and software
 
 - Chen, D. (2012). *Online Retail II* [Dataset]. UCI Machine Learning Repository. CC BY 4.0. The derived slice is filtered, date-shifted and augmented with simulated fields. [Dataset DOI](https://doi.org/10.24432/C5CG6D) · [CC BY 4.0 licence](https://creativecommons.org/licenses/by/4.0/)
-- The app serves Sarabun locally for Thai and Latin in four weights. Copyright 2018 The Sarabun Project Authors. SIL Open Font License 1.1. [Bundled font licence](app/fonts/OFL.txt)
+- The app serves IBM Plex Sans Thai from its build via Fontsource for Thai and Latin in four weights. SIL Open Font License 1.1. [Bundled font licence](app/fonts/IBM-Plex-Sans-Thai-OFL.txt)
 - The application uses Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, Zod and the OpenAI and Supabase SDKs. Third-party packages retain their licences. The project code uses the [MIT licence](LICENSE).
 
 ## Declarations

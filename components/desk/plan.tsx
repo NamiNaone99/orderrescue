@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { ChartNoAxesColumnIncreasing, Check, CircleCheck, CircleHelp, Clock3, GitCompareArrows, ListOrdered, RotateCcw, TimerOff, TrendingUp } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, Check, CircleCheck, CircleHelp, Clock3, GitCompareArrows, ListOrdered, RotateCcw, TimerOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { copy, polishCopy } from "@/lib/copy";
 import type { PlanResponse } from "@/lib/domain/contracts";
-import { formatThb } from "@/lib/domain/money";
+import { formatThb, lineCostThb } from "@/lib/domain/money";
 import { formatBangkokTime } from "@/lib/domain/time";
 
 export const humanReason = { NO_STOCK: copy.noStock, NO_ON_TIME_SOURCE: copy.noSource, OVER_BUDGET: copy.overBudget, NOT_SELECTED: copy.notSelected };
@@ -35,6 +35,7 @@ function StrategyOrders({ orders, strategy }: { orders: PlanResponse["affected"]
       <div className="order-timing"><span>{copy.deadline.th} <b>{formatBangkokTime(order.deadline_at)}</b></span>
         {line ? <span>{copy.warehouse.th} <b>{line.warehouse_id}</b> · {copy.readyTime.th} <b>{formatBangkokTime(line.ready_at)}</b></span>
           : <span>{reason && humanReason[reason].th}</span>}</div>
+      {line && <p className="line-extra-cost">{line.qty} หน่วย × {formatThb(line.unit_cost_thb)} = <b>{formatThb(lineCostThb(line.unit_cost_thb, line.qty))}</b></p>}
     </li>;
   })}</ul>;
 }
@@ -51,9 +52,39 @@ function StrategySkeleton() {
   </div>;
 }
 
+function DecisionSummary({ plan }: { plan: PlanResponse }) {
+  const [loss, setLoss] = useState("");
+  const gain = plan.joint.on_time - plan.first_come.on_time;
+  const extra = plan.joint.extra_cost_thb - plan.first_come.extra_cost_thb;
+  const firstOrders = new Set(plan.first_come.lines.map(line => line.order_id));
+  const addedOrders = plan.joint.lines.filter(line => !firstOrders.has(line.order_id));
+  const lossScope = addedOrders.length === 1 ? "#" + addedOrders[0].order_id : gain + " ใบที่ส่งทันเพิ่ม";
+  const estimate = /^\d+$/.test(loss) && Number.isSafeInteger(Number(loss)) ? Number(loss) : null;
+  const difference = estimate === null ? null : estimate - extra;
+  if (!plan.affected.length) return null;
+  return <section className="du-alert du-alert-soft du-alert-success decision-summary" aria-label="ผลต่างของสองแผน">
+    <p className="du-badge du-badge-soft du-badge-warning decision-scope">{plan.affected.length} ออเดอร์เสี่ยงพลาดรอบ</p>
+    {gain > 0 ? <>
+      <p className="decision-lead"><strong>ส่งทันเพิ่ม {gain} ใบ</strong>
+        {" · "}{extra > 0 ? <>จ่ายเพิ่มอีก <strong>{formatThb(extra)}</strong></>
+          : extra === 0 ? "จ่ายเท่ากัน" : <>จ่ายน้อยลง <strong>{formatThb(-extra)}</strong></>}</p>
+      <p className="decision-context">เทียบกับส่งตามคิวเดิม{addedOrders.length === 1 && " · ใบที่ส่งทันเพิ่มคือ " + lossScope}</p>
+      {extra > 0 && addedOrders.length === gain && <details className="loss-estimate">
+          <summary>ลองคิดว่าจ่ายเพิ่มแล้วคุ้มไหม · คุ้มถ้าเลี่ยงค่าเสียหายได้เกิน {formatThb(extra)}</summary>
+          <label htmlFor="missed-order-loss">ถ้า {lossScope} พลาดรอบ คาดว่าจะเสียกี่บาท?</label>
+          <input id="missed-order-loss" type="number" min="0" step="1" inputMode="numeric" placeholder="ใส่ยอดที่คุณประเมิน"
+            value={loss} onChange={event => setLoss(event.target.value)} />
+          <p className="estimate-note" role="status">{difference === null
+            ? <>เช่น ค่าปรับหรือค่าส่งซ้ำ ยอดที่กรอกใช้เทียบกับเงินเพิ่ม {formatThb(extra)}</>
+            : difference === 0 ? "ค่าเสียหายที่คาดไว้เท่ากับเงินที่จ่ายเพิ่ม"
+              : difference > 0 ? <>ถ้าประเมินถูก แผนนี้ลดค่าใช้จ่ายสุทธิได้ {formatThb(difference)}</>
+                : <>ถ้าประเมินถูก แผนนี้จ่ายเพิ่มเกินค่าเสียหายที่เลี่ยงได้ {formatThb(-difference)}</>}</p>
+        </details>}
+    </> : <p className="decision-lead"><strong>จัดคลังใหม่ส่งทัน {plan.joint.on_time} จาก {plan.joint.total} ใบ</strong></p>}
+  </section>;
+}
+
 export function PlanCompare({ plan, loading, booked, stale, notice, reset, resetDisabled }: { plan: PlanResponse | null; loading: boolean; booked: boolean; stale: boolean; notice?: ReactNode; reset?: () => void; resetDisabled: boolean }) {
-  const gain = plan ? plan.joint.on_time - plan.first_come.on_time : 0;
-  const extra = plan ? plan.joint.extra_cost_thb - plan.first_come.extra_cost_thb : 0;
   const orders = [...(plan?.affected ?? [])].sort((a, b) => a.deadline_at.localeCompare(b.deadline_at) || a.order_id.localeCompare(b.order_id));
   return <section id="desk-plans" tabIndex={-1} className={"desk-panel plan-panel" + (stale ? " stale-plan" : "")}
     data-plan-state={plan ? "ready" : loading ? "loading" : "empty"} aria-labelledby="compare-heading" aria-busy={loading}>
@@ -62,22 +93,26 @@ export function PlanCompare({ plan, loading, booked, stale, notice, reset, reset
       {plan && <SolverChip solver={plan.solver} />}
       {!plan && loading && <span className="solver-chip solver-placeholder" aria-hidden><CircleCheck />{copy.proven.th}</span>}</div>
     {notice}
-    <div className="strategy-grid">{(["first_come", "joint"] as const).map(key => {
+    {plan && !stale && !booked && <DecisionSummary key={plan.plan_hash} plan={plan} />}
+    {!plan && !loading && <div className="plan-start"><Clock3 aria-hidden /><div>
+      <h3>ดูว่าคลังอื่นช่วยส่งทันไหม</h3><p>{copy.hint.th}</p></div></div>}
+    {(plan || loading) && <div className="strategy-grid">{(["first_come", "joint"] as const).map(key => {
       const joint = key === "joint";
       const label = joint ? copy.joint : copy.firstCome;
       const result = plan?.[key];
       const Icon = joint ? ChartNoAxesColumnIncreasing : ListOrdered;
       return <article aria-label={label.th} key={key} className={"strategy " + (joint ? "joint" : "baseline")}>
-        <div className="strategy-title"><Icon aria-hidden /><div><h3>{label.th}</h3><span lang="en">{label.en}</span></div></div>
+        <div className="strategy-title"><Icon aria-hidden /><div><h3>{label.th}</h3>
+          <span>{joint ? copy.jointExplain.th : copy.firstExplain.th}</span></div></div>
         {result ? <div className="strategy-result"><div className="score-line">
           <strong className="score" key={result.on_time + "/" + result.total}>{result.on_time}<span>/{result.total}</span></strong><span className="score-label">{copy.onTime.th}</span></div>
           <p className="strategy-cost"><span>{copy.extraCost.th}</span><b>{formatThb(result.extra_cost_thb)}</b></p>
-          <div className="strategy-note">{joint && gain > 0 ? <span className="delta-chip"><TrendingUp aria-hidden />{polishCopy.savedMore.th.replace("{n}", String(gain))}
-            {extra > 0 && <span> · +{formatThb(extra)}</span>}</span> : <span>{joint ? copy.jointExplain.th : copy.firstExplain.th}</span>}</div>
-          <StrategyOrders orders={orders} strategy={result} /></div> : loading ? <StrategySkeleton /> :
-          <p className="strategy-empty"><Clock3 aria-hidden />{joint ? polishCopy.emptyPlan.th : copy.hint.th}</p>}
+          <div className="strategy-note">{result.total === result.on_time
+            ? (result.total ? "ทันรอบครบทุกใบ" : copy.noAffected.th)
+            : <>อีก {result.total - result.on_time} ใบยังต้องจัดการ</>}</div>
+          <StrategyOrders orders={orders} strategy={result} /></div> : <StrategySkeleton />}
       </article>;
-    })}</div>
+    })}</div>}
     {plan && <OrderTable plan={plan} booked={booked} orders={orders} />}
     {plan && !plan.affected.length && reset && <button type="button" className="outline-action empty-reset" disabled={resetDisabled} onClick={reset}><RotateCcw aria-hidden />{copy.reset.th}</button>}
     {!plan && loading && <div className="order-summary-skeleton" aria-hidden><i /><i /><i /></div>}

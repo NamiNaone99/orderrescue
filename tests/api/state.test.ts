@@ -7,7 +7,7 @@ import {
   demoEventResponseSchema, errorResponseSchema, healthResponseSchema, stateResponseSchema,
 } from "@/lib/domain/contracts";
 import * as interpreter from "@/lib/interpreter/runtime";
-import { heroSampleMessages, heroSnapshot, heroTime } from "@/lib/scenarios/hero";
+import { heroSnapshot, heroTime } from "@/lib/scenarios/hero";
 import * as stores from "@/lib/store";
 import { StoreError } from "@/lib/store/types";
 
@@ -94,7 +94,12 @@ describe("GET /api/state", () => {
     const result = await readState();
     expect(result.scenario).toMatchObject({
       shifts: heroSnapshot.scenario.shifts, default_sku_id: "SKU-X",
-      sample_messages: heroSampleMessages.map(({ text, label_th }) => ({ text, label_th })),
+      name_th: "ตัวอย่างเตรียมของไม่ทันรอบส่ง",
+      sample_messages: [
+        { text: "คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ", label_th: "เตรียมของไม่ทันรอบบ่าย" },
+        { text: "ของตัวนี้เตรียมไม่ทันรอบบ่ายครับ", label_th: "ข้อมูลไม่ครบ" },
+        { text: "พรุ่งนี้ใครเข้ากะเช้าบ้าง", label_th: "ถามเรื่องกะงาน" },
+      ],
     });
     expect(result.stock.find(row => row.warehouse_id === "B")).toMatchObject({ on_hand: 20, committed: 12, free: 8 });
     expect(result.orders.find(order => order.id === "101")).toEqual({

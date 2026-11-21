@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { copy } from "../lib/copy";
 import { planRequestSchema } from "../lib/domain/contracts";
-import { realDaySamples } from "../lib/scenarios/realDayFormat";
 import { resetDemo } from "./helpers";
 
 test.skip(!existsSync("data/derived/day-2011-11-22.json"), "The real-day scenario is not registered in a hero-only build.");
@@ -11,12 +10,13 @@ test("keeps the operator's second SKU choice when the same message is analysed a
   test.setTimeout(65_000);
   await resetDemo(request, "real-day");
   await page.goto("/?scenario=real-day");
-  const sample = realDaySamples[1];
-  await page.getByRole("button", { name: sample.label_th, exact: true }).click();
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue(sample.text);
+  await page.getByRole("button", { name: "สินค้าสองรายการ", exact: true }).click();
+  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue(
+    "คลัง A เตรียมสินค้า 23084 กับ 23355 ไม่ได้ช่วง 14:00–16:00",
+  );
   const analyse = page.getByRole("button", { name: copy.analyse.th });
   await analyse.click();
-  const [firstSku, secondSku] = sample.expected.skus;
+  const [firstSku, secondSku] = ["23084", "23355"];
   const choices = page.getByRole("group", { name: copy.chooseSku.th });
   const first = choices.getByRole("radio", { name: new RegExp(firstSku) });
   const chosen = choices.getByRole("radio", { name: new RegExp(secondSku) });

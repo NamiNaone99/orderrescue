@@ -98,7 +98,7 @@
 .strategy-skeleton .skeleton-line { color: transparent; background: #d9e4de; border-radius: 4px; font-style: normal; }
 .strategy-skeleton .score-line > .skeleton-line { background: linear-gradient(transparent 16%, #d9e4de 16% 88%, transparent 88%); }
 .strategy-skeleton .strategy-orders { pointer-events: none; }
-.strategy-orders { block-size: 128px; }
+.strategy-orders { min-block-size: 152px; }
 .strategy-result, .strategy-skeleton { min-inline-size: 0; }
 .order-summary-skeleton { min-height: 172px; align-content: start; }
 .dispatch { --summary-block: 184px; }
@@ -179,13 +179,14 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   .dispatch, .dispatch[data-scenario="real-day"] { --summary-block: 454px; }
   .confirm-slot { width: 100%; }
   .dispatch .score { font-size: 56px; }
-  .strategy-orders { block-size: 144px; }
+  .strategy-orders { min-block-size: 144px; }
+  .workflow li { font-size: 12px; }
   .plan-panel .solver-chip { margin: 0 0 0 auto; }
   .budget-panel:has(.budget-bottom button:enabled) { position: static; }
   .dispatch { padding-bottom: 80px; }
   .dispatch[data-action="analyse"] .analyse-action, .dispatch[data-action="confirm"] .budget-bottom .primary-action,
   .dispatch[data-action="replan"] #stale-replan, .dispatch[data-action="new"] .receipt-actions .primary-action,
-  .dispatch[data-action="manual"] .manual-actions .primary-action, .dispatch[data-action="edit"] .clarification .outline-action,
+  .dispatch[data-action="manual"] .manual-actions .primary-action,
   .dispatch[data-action="incident"] .incident-edit, .dispatch[data-action="retry"] .desk-error .text-action,
   .dispatch[data-action="reset"] .empty-reset, .dispatch[data-action="budget"] .mobile-budget-edit,
   .dispatch[data-action="choose"] .mobile-choose-sku, .dispatch[data-action="rewrite"] .rewrite-action {

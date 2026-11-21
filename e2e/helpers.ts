@@ -32,7 +32,7 @@ export async function resetDemo(request: APIRequestContext, scenario: ScenarioId
 
 export async function analyseHero(page: Page) {
   await page.goto("/?scenario=hero");
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้");
+  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ");
   await page.getByRole("button", { name: copy.analyse.th }).click();
   await expect(page.getByRole("region", { name: copy.compare.th }).getByRole("table")).toBeVisible({ timeout: 25_000 });
 }

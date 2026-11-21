@@ -32,7 +32,7 @@ test("keeps the mobile desk usable when health is unavailable", async ({ page })
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/api/health", route => route.fulfill({ status: 404, body: "" }));
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: copy.desk.th })).toBeVisible();
+  await expect(page.getByRole("heading", { name: copy.deskHeading.th })).toBeVisible();
   await expect(page.getByText("AI: —")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
   await page.getByLabel(copy.scenario.th, { exact: true }).focus();

@@ -17,7 +17,7 @@ async function glyphFonts(page: Page, selector: string) {
 }
 
 for (const width of [1440, 390]) {
-  test(`Sarabun renders Thai and Latin and the demo guide preserves the draft at ${width}px`, async ({ page }) => {
+  test(`IBM Plex Sans Thai renders Thai and Latin and the demo guide preserves the draft at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto("/?scenario=hero");
     const message = page.getByLabel(copy.message.th, { exact: true });
@@ -28,7 +28,7 @@ for (const width of [1440, 390]) {
     for (const selector of ["h1", ".wordmark [lang=en]"]) {
       const fonts = await glyphFonts(page, selector);
       expect(fonts.length).toBeGreaterThan(0);
-      expect(fonts.every(font => font.isCustomFont && font.familyName.includes("Sarabun"))).toBe(true);
+      expect(fonts.every(font => font.isCustomFont && /IBM\s*Plex\s*Sans\s*Thai/i.test(font.familyName))).toBe(true);
     }
     const changes: string[] = [];
     page.on("request", request => { if (request.url().includes("/api/")) changes.push(request.url()); });
@@ -36,8 +36,8 @@ for (const width of [1440, 390]) {
     await trigger.focus();
     await page.keyboard.press("Enter");
     const guide = page.getByRole("dialog", { name: polishCopy.guide.th });
-    await expect(guide).toContainText("1/2");
-    await expect(guide).toContainText("2/2");
+    await expect(guide).toContainText("1 จาก 2 ใบ");
+    await expect(guide).toContainText("2 จาก 2 ใบ");
     await expect(guide).toContainText("฿88");
     await expect(guide).toContainText("14:30");
     await page.keyboard.press("Tab");
@@ -59,7 +59,7 @@ test("the first paint exposes the hero sample and accepts one analysis while sta
   page.on("request", req => { if (req.url().endsWith("/api/interpret")) interpretations++; });
   await page.goto("/?scenario=hero");
   const button = page.getByRole("button", { name: copy.analyse.th, exact: true });
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้");
+  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ");
   await expect(button).toBeEnabled();
   await button.click();
   await expect(page.getByRole("button", { name: copy.analysing.th })).toBeDisabled();
