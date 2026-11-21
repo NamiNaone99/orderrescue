@@ -1,0 +1,488 @@
+{
+  "timestamp": "2026-11-21T05:06:52.511Z",
+  "commit": "1e79026e81dfb32132e088feb4b0a99d78509955",
+  "corpus_sha256": "9437274a67cb589f0913eb9f61f419b065497e107c5b09024a8e1e24f04eb5c8",
+  "interpreter": "offline",
+  "models": [],
+  "split": "all",
+  "limit": null,
+  "ac26": "unverified",
+  "counts": {
+    "selected": 3,
+    "scored": 3,
+    "skipped": 0,
+    "kind": {
+      "correct": 3,
+      "total": 3
+    },
+    "warehouse": {
+      "correct": 1,
+      "total": 1
+    },
+    "skus": {
+      "correct": 1,
+      "total": 1
+    },
+    "window": {
+      "correct": 1,
+      "total": 1
+    },
+    "evidence": {
+      "correct": 1,
+      "total": 1
+    },
+    "incident_fields": {
+      "correct": 1,
+      "total": 1
+    },
+    "clarify_about": {
+      "correct": 1,
+      "total": 1
+    },
+    "false_incidents": 0,
+    "latency_ms": {
+      "p50": 0,
+      "p95": 1
+    },
+    "answered": {
+      "offline": 3
+    }
+  },
+  "by_category": {
+    "clear": {
+      "selected": 1,
+      "scored": 1,
+      "skipped": 0,
+      "kind": {
+        "correct": 1,
+        "total": 1
+      },
+      "warehouse": {
+        "correct": 1,
+        "total": 1
+      },
+      "skus": {
+        "correct": 1,
+        "total": 1
+      },
+      "window": {
+        "correct": 1,
+        "total": 1
+      },
+      "evidence": {
+        "correct": 1,
+        "total": 1
+      },
+      "incident_fields": {
+        "correct": 1,
+        "total": 1
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": 1,
+        "p95": 1
+      },
+      "answered": {
+        "offline": 1
+      }
+    },
+    "ambiguous": {
+      "selected": 1,
+      "scored": 1,
+      "skipped": 0,
+      "kind": {
+        "correct": 1,
+        "total": 1
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 1,
+        "total": 1
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": 0,
+        "p95": 0
+      },
+      "answered": {
+        "offline": 1
+      }
+    },
+    "contradictory": {
+      "selected": 0,
+      "scored": 0,
+      "skipped": 0,
+      "kind": {
+        "correct": 0,
+        "total": 0
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": null,
+        "p95": null
+      },
+      "answered": {}
+    },
+    "irrelevant": {
+      "selected": 1,
+      "scored": 1,
+      "skipped": 0,
+      "kind": {
+        "correct": 1,
+        "total": 1
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": 0,
+        "p95": 0
+      },
+      "answered": {
+        "offline": 1
+      }
+    },
+    "typo or slang": {
+      "selected": 0,
+      "scored": 0,
+      "skipped": 0,
+      "kind": {
+        "correct": 0,
+        "total": 0
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": null,
+        "p95": null
+      },
+      "answered": {}
+    },
+    "multi-SKU": {
+      "selected": 0,
+      "scored": 0,
+      "skipped": 0,
+      "kind": {
+        "correct": 0,
+        "total": 0
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": null,
+        "p95": null
+      },
+      "answered": {}
+    },
+    "out of scope or injected instruction": {
+      "selected": 0,
+      "scored": 0,
+      "skipped": 0,
+      "kind": {
+        "correct": 0,
+        "total": 0
+      },
+      "warehouse": {
+        "correct": 0,
+        "total": 0
+      },
+      "skus": {
+        "correct": 0,
+        "total": 0
+      },
+      "window": {
+        "correct": 0,
+        "total": 0
+      },
+      "evidence": {
+        "correct": 0,
+        "total": 0
+      },
+      "incident_fields": {
+        "correct": 0,
+        "total": 0
+      },
+      "clarify_about": {
+        "correct": 0,
+        "total": 0
+      },
+      "false_incidents": 0,
+      "latency_ms": {
+        "p50": null,
+        "p95": null
+      },
+      "answered": {}
+    }
+  },
+  "rows": [
+    {
+      "id": "starter-hero-1",
+      "split": "dev",
+      "scenario": "hero",
+      "category": "clear",
+      "expected": {
+        "kind": "incident",
+        "warehouse": "A",
+        "skus": [
+          "SKU-X"
+        ],
+        "start": "13:00",
+        "end": "18:00",
+        "evidence_quote": "งดหยิบ SKU-X รอบบ่ายวันนี้",
+        "clarify_about": null
+      },
+      "status": "scored",
+      "actual": {
+        "outcome": "incident",
+        "incident": {
+          "warehouse_id": "A",
+          "sku_ids": [
+            "SKU-X"
+          ],
+          "window_start": "2026-11-21T13:00:00+07:00",
+          "window_end": "2026-11-21T18:00:00+07:00",
+          "evidence_quote": "งดหยิบ SKU-X รอบบ่ายวันนี้"
+        },
+        "clarification": null,
+        "validation": {
+          "ok": true,
+          "issues": []
+        },
+        "interpreter": {
+          "used": "offline",
+          "attempts": [
+            {
+              "name": "offline",
+              "ok": true
+            }
+          ],
+          "latency_ms": 1,
+          "rate_limited": false
+        }
+      },
+      "checks": {
+        "kind": true,
+        "warehouse": true,
+        "skus": true,
+        "window": true,
+        "evidence": true,
+        "incident_fields": true,
+        "clarify_about": null,
+        "false_incident": false
+      },
+      "passed": true
+    },
+    {
+      "id": "starter-hero-2",
+      "split": "heldout",
+      "scenario": "hero",
+      "category": "ambiguous",
+      "expected": {
+        "kind": "clarification",
+        "warehouse": null,
+        "skus": null,
+        "start": null,
+        "end": null,
+        "evidence_quote": null,
+        "clarify_about": "warehouse"
+      },
+      "status": "scored",
+      "actual": {
+        "outcome": "clarification",
+        "incident": null,
+        "clarification": {
+          "about": "warehouse",
+          "question_th": "คลังไหนหยิบสินค้าไม่ได้คะ"
+        },
+        "validation": {
+          "ok": true,
+          "issues": []
+        },
+        "interpreter": {
+          "used": "offline",
+          "attempts": [
+            {
+              "name": "offline",
+              "ok": true
+            }
+          ],
+          "latency_ms": 0,
+          "rate_limited": false
+        }
+      },
+      "checks": {
+        "kind": true,
+        "warehouse": null,
+        "skus": null,
+        "window": null,
+        "evidence": null,
+        "incident_fields": null,
+        "clarify_about": true,
+        "false_incident": false
+      },
+      "passed": true
+    },
+    {
+      "id": "starter-hero-3",
+      "split": "dev",
+      "scenario": "hero",
+      "category": "irrelevant",
+      "expected": {
+        "kind": "ignore",
+        "warehouse": null,
+        "skus": null,
+        "start": null,
+        "end": null,
+        "evidence_quote": null,
+        "clarify_about": null
+      },
+      "status": "scored",
+      "actual": {
+        "outcome": "ignore",
+        "incident": null,
+        "clarification": null,
+        "validation": {
+          "ok": true,
+          "issues": []
+        },
+        "interpreter": {
+          "used": "offline",
+          "attempts": [
+            {
+              "name": "offline",
+              "ok": true
+            }
+          ],
+          "latency_ms": 0,
+          "rate_limited": false
+        }
+      },
+      "checks": {
+        "kind": true,
+        "warehouse": null,
+        "skus": null,
+        "window": null,
+        "evidence": null,
+        "incident_fields": null,
+        "clarify_about": null,
+        "false_incident": false
+      },
+      "passed": true
+    }
+  ]
+}
