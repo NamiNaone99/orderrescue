@@ -2,7 +2,7 @@
 
 21 November 2026 · Sea × OpenAI Regional Codex Hackathon Thailand
 
-OrderRescue helps a Thai dispatch operator recover several open orders after one warehouse disruption arrives in chat. A language model extracts the incident and asks for clarification when evidence is incomplete. The planner works from a confirmed incident and current stock. It compares feasible plans under one budget and gives the operator the final booking decision.
+OrderRescue helps a Thai dispatch operator recover several open orders after one warehouse disruption arrives in chat. The interpreter is designed to use a language model to extract the incident and ask for clarification when evidence is incomplete. The reviewed build uses the offline interpreter. The planner works from a confirmed incident and current stock. It compares feasible plans under one budget and gives the operator the final booking decision.
 
 ## What the judges can inspect
 
@@ -54,6 +54,6 @@ Local verification on the reviewed baseline passed `pnpm lint`, `pnpm typecheck`
 
 ## Submission and pitch
 
-The on-site briefing sets development from **10:25 ICT**, freeze and submission at **17:00 ICT**, round one at **17:30–19:00 ICT** and finals at **19:30–20:30 ICT**. It requires on-site work in a new public repository. Teams can start from scratch or substantially extend an existing personal or open-source project, with links and the event-built scope in the README and submission form. Submit once per team with the repo, writeup, live demo or prototype link, and declarations. The writeup covers the problem, solution, build direction and use of Codex. The early Git history and the [README declarations](../README.md#declarations) record the scaffold and prepared planning documents. Confirm the treatment of those documents against the team's on-site instructions.
+The on-site briefing (slides 3, 7–10 and 17) sets development from **10:25 ICT**, freeze and submission at **17:00 ICT**, round one at **17:30–19:00 ICT** and finals at **19:30–20:30 ICT**. It requires on-site work in a new public repository. Teams can start from scratch or substantially extend an existing personal or open-source project, with links and the event-built scope in the README and submission form. Submit once per team with the repo, writeup, live demo or prototype link, and declarations. The writeup covers the problem, solution, build direction and use of Codex. The early Git history and the [README declarations](../README.md#declarations) record the scaffold and prepared planning documents. Confirm the treatment of those documents against the team's on-site instructions.
 
 Suggested six minutes. **0:00–0:45** operator and disrupted dispatch. **0:45–3:45** live workflow with a stock slip and confirmed receipt. **3:45–4:40** trade-off, stronger baseline and real-world validation. **4:40–5:40** one Codex finding from review to regression to CI. **5:40–6:00** current demo mode and takeaway.
