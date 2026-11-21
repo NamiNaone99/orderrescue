@@ -127,7 +127,7 @@ function Panels({ plan, stock, input, budget, locked, changeBudget }: Props) {
   const max = Math.max(1, ...points.map(p => p.budget), stock.scenario.default_budget_thb, plan.budget_thb);
   const slider = /^\d+$/.test(budget) && Number.isSafeInteger(Number(budget)) ? Math.min(Number(budget), max) : current.budget;
   return <div className="plan-insights">
-    <details onToggle={event => {
+    <details id="desk-frontier" onToggle={event => {
       if (event.currentTarget.open) { if (status !== "ready") void compare(); }
       else active.current?.abort();
     }}><Summary label={c.frontier} chart />
@@ -143,7 +143,7 @@ function Panels({ plan, stock, input, budget, locked, changeBudget }: Props) {
             {status === "changed" ? copy.replan.th : c.retry.th}</button></div> : <p role="status">{c.loading.th}</p>}
       </div>
     </details>
-    <details onToggle={event => setWhyOpen(event.currentTarget.open)}><Summary label={c.why} />
+    <details id="desk-why" onToggle={event => setWhyOpen(event.currentTarget.open)}><Summary label={c.why} />
       {whyOpen && <div className="insight-body"><Why plan={plan} stock={stock} input={input} /></div>}
     </details>
   </div>;

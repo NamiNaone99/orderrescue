@@ -6,6 +6,8 @@ OrderRescue is a Thai-first dispatch desk for a wholesaler with several stock lo
 
 [Open the live desk](https://orderrescue.vercel.app/) · [Start the guided demo with presenter notes](https://orderrescue.vercel.app/?tour=1&notes=1)
 
+Choose one of five business cases on the desk, then select **วิเคราะห์ตัวอย่างนี้** (Run this example) to calculate a plan from current data. Explore backup warehouses after a flood or choose the carrier case and report a later departure. [Open the case picker](https://orderrescue.vercel.app/?case=flood)
+
 Team AornSorn started application development on 21 Nov 2026 at 10:25 ICT.
 
 ## Try the synthetic hero

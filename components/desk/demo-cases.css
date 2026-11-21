@@ -1,0 +1,23 @@
+.demo-cases { margin-block: 10px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.case-picker { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; justify-content: space-between; padding: 8px 16px; }
+.case-label { display: flex; align-items: center; gap: 10px; color: var(--ink-green); }
+.case-label div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 9px; }
+.case-label label { font-weight: 700; }
+.case-picker select { max-width: 100%; min-height: 44px; min-width: 44px; padding: 4px 26px 4px 12px; color: var(--foreground); background: var(--card); border: 1px solid var(--border); border-radius: 7px; }
+.case-brief { display: grid; grid-template-columns: 1.1fr 1fr; gap: 13px 28px; border-top: 1px solid var(--border); padding: 14px 18px 16px; }
+.case-story h2 { color: var(--ink-green); line-height: 1.4; }
+.case-story h2 small { display: inline-block; margin-inline-start: 4px; font-weight: 400; }
+.case-story p { margin-top: 5px; }
+.case-story .case-scope, .case-example > span { color: var(--muted-foreground); font-size: 14px; }
+.case-example { min-width: 0; border-inline-start: 3px solid var(--primary); padding-inline-start: 14px; }
+.case-example > span, .case-example q { display: block; }
+.case-example q { font-weight: 600; overflow-wrap: anywhere; }
+.case-example button { min-height: 44px; min-width: 44px; margin-top: 8px; }
+.case-result { margin-top: 6px; font-variant-numeric: tabular-nums; }
+.tour-coach .tour-case-choice { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; min-width: 44px; margin-top: 2px; }
+@media (max-width: 680px) {
+  .case-picker { align-items: stretch; padding: 9px 13px; }
+  .case-picker select { width: 100%; }
+  .case-brief { grid-template-columns: minmax(0,1fr); padding: 12px 13px; }
+  .case-story h2 small { display: block; margin-inline-start: 0; }
+}
