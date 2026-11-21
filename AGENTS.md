@@ -28,7 +28,7 @@ If the spec and a prompt disagree, stop and ask. If the spec is silent, choose t
 
 Next.js 16 App Router, React 19, TypeScript (the version `create-next-app` installed; do not upgrade it), Tailwind CSS 4, shadcn/ui, zod, `openai` (Responses API, server only), `@supabase/supabase-js` (server only, over HTTPS, one `rpc` for booking), Vitest, fast-check, Playwright, axe. Package manager: pnpm. Node 22.
 
-OpenAI model ids below are unverified placeholders from pre-event research: `gpt-6-luna` (extractor), `gpt-6.2-sol` (fallback). Confirm on the models page before T11 and correct them here.
+T11 verified the Responses API model IDs on 21 Nov 2026. The extractor uses `gpt-6-luna` and the fallback uses `gpt-6.2-sol`. Both use low reasoning effort.
 
 ## Commands
 

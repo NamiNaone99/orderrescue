@@ -16,6 +16,7 @@ Times are ICT on 21 Nov 2026. Minutes are rounded elapsed time. Blank human-corr
 | 11:32 | T06 | Codex | local + review | GPT-6 | Expose seven dispatch API routes and verify confirmation, fallback and quotas | [PR #6](https://github.com/NamiNaone99/orderrescue/pull/6) merged at `56e2ee7`. 207 tests passed. Production health reported memory/offline and the hero API returned first-come 1/2 for ฿32 and joint 2/2 for ฿88. | 16 | Unrecorded | 46 | | `01a1fc37-1a54-7440-8063-64309589a6f4` |
 | 11:39 | T09 | Codex | local | GPT-6 | Build the Thai-first dispatch shell and scenario controls | `T09: UI shell, tokens and Thai typography` on `t09-ui-shell`. 208 unit tests and 3 Chromium tests passed. Both screenshots passed WCAG A/AA axe checks. | 14 | Unrecorded | 3 | | `01a1fc35-5bb0-7c11-96fc-a8614839c5c1` |
 | 11:49 | T13 | Codex | local | GPT-6 | Derive the real-order day with field provenance and tune its inventory | `T13: real-day dataset build with provenance`, factor 1.10, split 50/30/20, cutoff 11:00, THB 200 budget gives 15 vs 16 on time with five unresolved | 7 | Unrecorded | 6 | | `01a1fc37-1a54-7440-8063-64309589a6f4` |
+| 11:54 | T11 | Codex | local | GPT-6 | Connect the verified Responses API models to the validated interpreter chain | `T11: live OpenAI interpreter with fallback` on `t11-live-interpreter`. Live Luna returned the hero incident in 5.073 s. A separate invalid-key run fell back offline. All 219 unit tests and 3 Chromium tests passed. | 6 | Unrecorded | 11 | | `01a1fc35-5bb0-7c11-96fc-a8614839c5c1` |
 
 ## Codex features used
 
