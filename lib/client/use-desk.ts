@@ -37,8 +37,9 @@ type Action =
 function updateStock(s: DispatchState, stock: StateResponse): DispatchState {
   const next = { ...s, stock };
   if (!s.plan || !s.baseline || !s.plannedInput || s.booked) return next;
-  // A lost response can mean the server already booked our rows. Keep the key available for replay.
-  const ambiguous = s.confirmation && s.error?.operation === "book" && s.error.api.code === "INTERNAL";
+  // A transport or storage failure can hide a committed booking. Keep its request for replay.
+  const ambiguous = s.confirmation && s.error?.operation === "book" &&
+    (s.error.api.code === "INTERNAL" || s.error.api.code === "STORAGE_UNAVAILABLE");
   if (ambiguous) return next;
   const changes = planChanges(s.plan, s.baseline, stock);
   if (!changes.length) return next;
