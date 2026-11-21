@@ -10,7 +10,8 @@ A Thai reader opening the repository can immediately try the dispatch demo or fo
 
 - [x] 2026-11-21 14:46 +07:00. Inventoried the root README, disclosures, historical evidence and incoming fragment links at `67350b7`.
 - [x] 2026-11-21 14:50 +07:00. Translated 14 headings; validated 13 stable anchors, 40 local file references, four team-only fields and all four verbatim English declarations. Both live entry URLs returned 200. Lint, types, build and 298 local tests passed.
-- [ ] Reconcile the bilingual release and Operations sections with the merged feature branches.
+- [x] 2026-11-21 15:09 +07:00. Integrated INSIGHTS and CHAT at `7e5b1cc`. The READMEs link the two feature notes, distinguish the 22 local PostgreSQL contracts from T15’s 19 hosted contracts and retain the three-message evaluation. On this release, lint, types, build and 341 local tests passed; the 22 hosted checks were skipped.
+- [ ] Reconcile the bilingual Operations section and accessibility evidence when T21 and T17b merge.
 
 ## Surprises & Discoveries
 

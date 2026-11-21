@@ -23,6 +23,8 @@ Try ฿87 to give the one affordable slot to #101, or ฿31 to see both orders g
 
 Below the plan, open **งบเท่าไหร่ ส่งทันกี่ออเดอร์ / Budget frontier** to try the budget slider. The hero delivers zero orders below ฿32, one at ฿32 and both at ฿88. A marker shows the current budget. For larger comparisons, dashed steps show the minimum number of orders demonstrated at the sampled budgets. Open **ทำไมถึงเป็นแผนนี้ / Why this plan** to see each warehouse's cost and the reason for each choice. After B's delay, #102 can still ship from B for ฿32 or C for ฿56, so choosing B saves ฿24. Both panels use the deterministic planner's results. [Screenshots and checks](docs/codex-log/INSIGHTS.md)
 
+Use **แชตจากคลัง / Warehouse chat** to report a delay, newly found stock or a return to picking. Try **รถสาขา B ออกได้บ่ายสองครึ่ง**. Review the warehouse, SKU, time and quoted message. Confirming the report changes the stock row and marks the old plan stale. Select Replan to serve #102 from B for ฿32. Existing receipts keep their original rows. The conversation stays in the current page session. The store records the confirmed event as structured data. [Chat examples and checks](docs/codex-log/CHAT.md)
+
 ## How it works
 
 1. **Interpret.** The server reads the message with the OpenAI Responses API or matches a scenario sample in offline mode.
@@ -72,6 +74,8 @@ Local checks used Windows, Node 22.20.0, memory storage and offline interpretati
 | `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
 | `pnpm eval --live --split heldout` with the human corpus | `run by the team: <to fill>` |
 
+On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 opt-in hosted checks were skipped, 51 domain checks passed in each time zone (UTC and Asia/Bangkok), and all 29 Chromium cases passed in 3.6 minutes. The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined CHAT and INSIGHTS checks](docs/codex-log/CHAT.md)
+
 ## Data and evaluation
 
 | Label | What it covers |
@@ -106,7 +110,7 @@ The team confirms its submission URL in `Live: <to fill>`.
 6. Readiness is one timestamp per warehouse/SKU. Transport routing, vehicle capacity and travel times remain outside the model.
 7. The search stops at 200,000 nodes and labels the best result found if the search is incomplete. The planning API rejects incidents affecting more than 60 orders. [Solver validation and timings](docs/SOLVER.md)
 8. The demo has shared state, public hero reset and no login or operator roles. Memory-mode state lasts only for that server process.
-9. Messages are pasted or selected from samples. There is no LINE or WhatsApp integration.
+9. Operators type, paste or choose a sample in the desk's warehouse chat. External messaging services such as LINE and WhatsApp are outside the implementation.
 10. This was a one-day build. Security and load verification are limited to the recorded checks.
 
 ### Open review findings
@@ -119,7 +123,7 @@ The frozen implementation at `17a9dc5` had five P2 limitations. T14 closed F6 wi
 
 ### Not built
 
-Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The [build evidence page](https://orderrescue.vercel.app/built-with-codex) links the task timeline, planner prompt, pull requests and tests.
+Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and external messaging integrations are outside this implementation. Preset events and confirmed warehouse reports can update stock readiness, quantity or the end of a picking interruption. The [build evidence page](https://orderrescue.vercel.app/built-with-codex) links the task timeline, planner prompt, pull requests and tests.
 
 ### Accessibility evidence
 

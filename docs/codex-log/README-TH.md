@@ -12,5 +12,8 @@
 | `curl.exe` ส่ง GET ที่ URL โต๊ะจัดส่งและ `/?tour=1&notes=1` | ทั้งคู่ตอบ HTTP 200 การตรวจรับเฉพาะ HTML จึงไม่เรียกการรีเซ็ตหรือจองเดโม |
 | `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm exec cross-env STORAGE_MODE=memory INTERPRETER_MODE=offline pnpm build` | ติดตั้งตรง lockfile และผ่านทั้งสามการตรวจ |
 | `pnpm exec cross-env STORAGE_MODE=memory INTERPRETER_MODE=offline pnpm test` หลัง build ฐาน `67350b7` | ผ่าน 298 กรณีใน 42 ไฟล์ ข้าม 19 กรณีที่ต้องเลือกเปิดเองสำหรับฐานข้อมูลบนโฮสต์ |
+| `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` บนฐาน `7e5b1cc` (build และ test ใช้ memory/offline) | ผ่านทุกคำสั่ง สร้างแอปได้ 14/14 หน้า ผ่าน 341 กรณีใน 45 ไฟล์ ข้ามชุดบนโฮสต์ 22 กรณี ลิงก์ที่ชี้เข้ารีโปใน README ทั้งสองภาษาครบ 44 ตำแหน่ง |
+
+หลังรวม [INSIGHTS](INSIGHTS.md) และ [CHAT](CHAT.md) เอกสารทั้งสองภาษาระบุขั้นงบ ฿32 และ ฿88 ของ hero วิธีดูเหตุผลที่เลือกแต่ละคลัง และขั้นตอนตรวจข้อความก่อนยืนยันรายงานจากคลัง ระบุรุ่นที่ทดสอบพร้อมผลของตัวเชื่อมฐานข้อมูลบนเครื่องและผลบนโฮสต์ในอดีตแยกกัน
 
 ไม่ได้รันชุดฐานข้อมูลบนโฮสต์หรือการประเมินโมเดลออนไลน์สำหรับงานเอกสารนี้ [แผนงาน](../../.agent/plans/README-TH.md)
