@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { copy } from "../lib/copy";
+import { resetDemo } from "./helpers";
+
+test.beforeEach(async ({ request }) => { await resetDemo(request); });
 
 test("navigates the desk and resets the hero without a token", async ({ page }) => {
   await page.route("**/api/health", route => route.fulfill({ json: {

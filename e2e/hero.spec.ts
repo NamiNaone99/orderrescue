@@ -1,12 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { copy } from "../lib/copy";
-import { resetDemo } from "./helpers";
+import { analyseHero, resetDemo } from "./helpers";
 
 test("hero dispatch compares allocations and books the confirmed rows", { tag: "@smoke" }, async ({ page, request }) => {
   await resetDemo(request);
-  await page.goto("/?scenario=hero");
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้");
-  await page.getByRole("button", { name: copy.analyse.th }).click();
+  await analyseHero(page);
   const incident = page.getByRole("region", { name: copy.incident.th });
   await expect(incident).toContainText("คลัง A");
   await expect(incident).toContainText("SKU-X");
