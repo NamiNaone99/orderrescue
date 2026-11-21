@@ -30,13 +30,17 @@ type Action =
   | { type: "planned"; plan: PlanResponse; input: PlanRequest; stock: StateResponse }
   | { type: "dialog"; confirmation: ReservationRequest | null }
   | { type: "booked"; result: ReservationResponse }
-  | { type: "observed"; plan: PlanResponse; stock: StateResponse }
-  | { type: "pollFailed"; plan: PlanResponse; error: DeskApiError }
-  | { type: "refreshed"; stock: StateResponse };
+  | { type: "observed"; plan: PlanResponse | null; inventoryOnly: boolean; stock: StateResponse }
+  | { type: "pollFailed"; plan: PlanResponse | null; inventoryOnly: boolean; error: DeskApiError }
+  | { type: "refreshed"; stock: StateResponse; inventoryOnly?: boolean };
 
-function updateStock(s: DispatchState, stock: StateResponse): DispatchState {
+function updateStock(s: DispatchState, stock: StateResponse, inventoryOnly = false): DispatchState {
+  if ((inventoryOnly || s.booked) && s.stock) {
+    // A receipt is historical. Polls can update its stock panel and applied-event evidence.
+    return { ...s, stock: { ...s.stock, stock: stock.stock, state_version: stock.state_version, scenario: stock.scenario } };
+  }
   const next = { ...s, stock };
-  if (!s.plan || !s.baseline || !s.plannedInput || s.booked) return next;
+  if (!s.plan || !s.baseline || !s.plannedInput) return next;
   // A transport or storage failure can hide a committed booking. Keep its request for replay.
   const ambiguous = s.confirmation && s.error?.operation === "book" &&
     (s.error.api.code === "INTERNAL" || s.error.api.code === "STORAGE_UNAVAILABLE");
@@ -67,10 +71,10 @@ function reducer(s: DispatchState, a: Action): DispatchState {
     case "planned": return updateStock({ ...s, plan: a.plan, plannedInput: a.input, baseline: a.stock, stale: null, busy: null, error: null }, a.stock);
     case "dialog": return s.stale ? s : { ...s, confirmation: a.confirmation, error: null };
     case "booked": return { ...s, booked: a.result, confirmation: null, stale: null, error: null, busy: "refresh" };
-    case "refreshed": return updateStock({ ...s, busy: null, error: null }, a.stock);
-    case "observed": return s.plan !== a.plan || s.busy || !s.plannedInput ? s :
-      updateStock({ ...s, error: s.error?.operation === "refresh" ? null : s.error }, a.stock);
-    case "pollFailed": return s.plan !== a.plan || s.busy || s.error || !s.plannedInput ? s :
+    case "refreshed": return updateStock({ ...s, busy: null, error: null }, a.stock, a.inventoryOnly);
+    case "observed": return s.plan !== a.plan || s.busy || (!a.inventoryOnly && !s.plannedInput) ? s :
+      updateStock({ ...s, error: s.error?.operation === "refresh" ? null : s.error }, a.stock, a.inventoryOnly);
+    case "pollFailed": return s.plan !== a.plan || s.busy || s.error || (!a.inventoryOnly && !s.plannedInput) ? s :
       { ...s, error: { operation: "refresh", api: a.error } };
   }
 }
@@ -79,7 +83,7 @@ export function validBudget(value: string) {
   return /^\d+$/.test(value) && Number.isSafeInteger(Number(value));
 }
 
-export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scenario"], "sample_messages" | "default_budget_thb">) {
+export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scenario"], "sample_messages" | "default_budget_thb" | "default_sku_id">, receiptId: string | null) {
   const [s, dispatch] = useReducer(reducer, defaults, seed => ({
     ...initial, message: seed.sample_messages[0]?.text ?? "", budget: String(seed.default_budget_thb),
   }));
@@ -118,21 +122,27 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
     return () => { cancel(); initialRead.current = null; };
   }, [readInitial, cancel]);
 
+  const restored = !s.interpretation && !s.manualIncident && !s.booked
+    ? s.stock?.reservations.find(receipt => receipt.id === receiptId) : undefined;
+  const receipt = s.booked?.receipt ?? restored;
+  const stockSku = receipt?.lines.find(line => line.sku_id === s.sku)?.sku_id
+    ?? receipt?.lines[0]?.sku_id ?? (s.sku || defaults.default_sku_id);
+  const inventoryOnly = !!receipt;
+  const pollSku = inventoryOnly ? stockSku : s.plannedInput?.incident.sku_id;
   useEffect(() => {
     const plan = s.plan;
-    const input = s.plannedInput;
-    if (!plan || !input || s.busy) return;
+    if (!pollSku || (!plan && !inventoryOnly) || s.busy) return;
     let inFlight: AbortController | null = null;
     let interval: ReturnType<typeof setInterval> | undefined;
     async function read() {
-      if (!plan || !input || document.hidden || inFlight) return;
+      if (!pollSku || document.hidden || inFlight) return;
       const controller = new AbortController();
       inFlight = controller;
       try {
-        const stock = await api.state({ scenario, sku: input.incident.sku_id }, controller.signal);
-        if (!controller.signal.aborted) dispatch({ type: "observed", plan, stock });
+        const stock = await api.state({ scenario, sku: pollSku }, controller.signal);
+        if (!controller.signal.aborted) dispatch({ type: "observed", plan, inventoryOnly, stock });
       } catch (error) {
-        if (!controller.signal.aborted && error instanceof DeskApiError) dispatch({ type: "pollFailed", plan, error });
+        if (!controller.signal.aborted && error instanceof DeskApiError) dispatch({ type: "pollFailed", plan, inventoryOnly, error });
       } finally { if (inFlight === controller) inFlight = null; }
     }
     function stop() { clearInterval(interval); inFlight?.abort(); inFlight = null; }
@@ -146,7 +156,7 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
     syncVisibility();
     document.addEventListener("visibilitychange", syncVisibility);
     return () => { stop(); document.removeEventListener("visibilitychange", syncVisibility); };
-  }, [s.plan, s.plannedInput, s.busy, s.confirmation, scenario]);
+  }, [s.plan, pollSku, inventoryOnly, s.busy, s.confirmation, scenario]);
 
   const incident = s.manualIncident ?? s.interpretation?.incident;
   function makePlan(incident: IncidentWindow, sku: string, budget: string) {
@@ -208,16 +218,16 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
   }
   function refresh() {
     return run("refresh", async (signal, apply) => {
-      const stock = await api.state({ scenario, sku: s.sku || s.stock?.scenario.default_sku_id }, signal);
-      apply({ type: "refreshed", stock });
+      const stock = await api.state({ scenario, sku: stockSku }, signal);
+      apply({ type: "refreshed", stock, inventoryOnly });
     });
   }
   function applyEvent(id: string) {
     lastEvent.current = id;
     return run("event", async (signal, apply) => {
       await api.event({ scenario, event_id: id }, signal);
-      const stock = await api.state({ scenario, sku: s.sku || s.stock?.scenario.default_sku_id }, signal);
-      apply({ type: "refreshed", stock });
+      const stock = await api.state({ scenario, sku: stockSku }, signal);
+      apply({ type: "refreshed", stock, inventoryOnly });
     });
   }
   function replan() {
@@ -250,6 +260,6 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
         }
     }
   }
-  return { s, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan, refresh,
+  return { s, restored, stockSku, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan, refresh,
     closeDialog: () => dispatch({ type: "dialog", confirmation: null }), startAgain: () => load(true) };
 }

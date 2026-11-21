@@ -27,14 +27,12 @@ const steps = [copy.stepMessage, copy.stepIncident, copy.stepPlan, copy.stepConf
 
 export default function DeskPage() {
   const scenario = useScenario();
-  const desk = useDesk(scenario.id, scenario);
-  const { s } = desk;
   const query = useDeskQuery();
   const params = new URLSearchParams(query);
+  const desk = useDesk(scenario.id, scenario, params.get("receipt"));
+  const { s, restored: saved, stockSku: sku } = desk;
   const touring = scenario.id === "hero" && params.get("tour") === "1";
   const [tourHost, setTourHost] = useState<HTMLDivElement | null>(null);
-  const saved = !s.interpretation && !s.manualIncident && !s.booked
-    ? s.stock?.reservations.find(receipt => receipt.id === params.get("receipt")) : undefined;
   const shownReceipt = s.booked ?? (saved ? { receipt: saved } : null);
   const health = useServiceHealth();
   const input = useRef<HTMLTextAreaElement>(null);
@@ -92,7 +90,6 @@ export default function DeskPage() {
   const step = manualOpen ? 1 : shownReceipt || s.confirmation ? 3 : s.plan ? 2 : s.interpretation || s.manualIncident ? 1 : 0;
   const locked = !!shownReceipt || !!s.confirmation || !!s.stale;
   const manualDisabled = !s.stock || !!s.confirmation || s.busy === "book" || s.busy === "reset" || s.busy === "event";
-  const sku = s.sku || scenario.default_sku_id;
   const loading = s.busy === "plan" || s.busy === "interpret";
   const meta = s.interpretation?.interpreter;
   const fallback = meta && (meta.used === "offline" || meta.rate_limited || meta.attempts.some(attempt => attempt.name !== meta.used));

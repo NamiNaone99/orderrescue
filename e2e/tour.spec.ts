@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { tourCopy as c } from "../lib/copy";
-import { planResponseSchema, reservationResponseSchema } from "../lib/domain/contracts";
+import { planResponseSchema, reservationResponseSchema, stateResponseSchema } from "../lib/domain/contracts";
 
 test("the guided demo runs real actions, books once and restores its receipt on reload", async ({ page }) => {
   const resetPath = "/api/demo/reset";
@@ -57,8 +57,15 @@ test("the guided demo runs real actions, books once and restores its receipt on 
   await act();
   await step(7);
   await expect(page.locator(".confirm-slot button")).toBeDisabled();
+  // An unrelated revision changes between the real replan and the desk's next stock read.
+  const state = stateResponseSchema.parse(await (await page.request.get("/api/state?scenario=hero&sku=SKU-X")).json());
+  const unused = state.stock.find(row => row.warehouse_id === "A" && row.sku_id === "SKU-X");
+  if (!unused) throw new Error("Expected the unused source warehouse in the hero fixture");
+  unused.revision++;
+  await page.route("**/api/state?**", route => route.fulfill({ json: { ...state, state_version: "unrelated-A-change" } }));
   await act();
   await step(8);
+  await page.unrouteAll({ behavior: "wait" });
   await expect(coach).toContainText("#102/B");
   await expect(coach).toContainText("#101");
   await act();
