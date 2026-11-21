@@ -6,7 +6,7 @@ import { formatBangkokTime } from "@/lib/domain/time";
 import { validBudget } from "@/lib/client/use-desk";
 
 export function StockPanel({ stock, sku, incident, plan, receipt, waiting }: {
-  receipt?: ReservationResponse["receipt"]; waiting: boolean; stock: StateResponse | null; sku: string; incident?: Pick<PlanRequest["incident"], "warehouse_id" | "window_start" | "window_end"> | null; plan: PlanResponse | null;
+  receipt?: Pick<ReservationResponse["receipt"], "lines">; waiting: boolean; stock: StateResponse | null; sku: string; incident?: Pick<PlanRequest["incident"], "warehouse_id" | "window_start" | "window_end"> | null; plan: PlanResponse | null;
 }) {
   const rows = stock?.stock.filter(row => row.sku_id === sku) ?? [];
   const used = new Set(plan?.joint.lines.map(line => line.warehouse_id));

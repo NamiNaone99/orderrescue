@@ -8,6 +8,7 @@ import "./globals.css";
 import "./desk.css";
 import "./desk-states.css";
 import "./polish.css";
+import "./tour.css";
 
 const title = "OrderRescue · " + copy.desk.th;
 export const metadata: Metadata = {

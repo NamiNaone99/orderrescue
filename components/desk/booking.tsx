@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, CircleAlert, Copy, Download, LoaderCircle, RotateCcw, TicketCheck } from "lucide-react";
 import { copy, polishCopy } from "@/lib/copy";
 import { DeskApiError } from "@/lib/client/api";
-import type { PlanResponse, ReservationRequest, ReservationResponse } from "@/lib/domain/contracts";
+import type { PlanResponse, ReservationRequest, StateResponse } from "@/lib/domain/contracts";
 import { formatThb } from "@/lib/domain/money";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,14 +24,14 @@ function BookingLines({ lines }: { lines: ReservationRequest["lines"] }) {
         <td><b>{copy.warehouse.th} {row.warehouse_id}</b></td><td>{row.qty}</td><td>{formatThb(row.unit_cost_thb)}</td><td>r{row.expected_revision}</td></tr>)}</tbody></table>;
 }
 
-export function ConfirmDialog({ input, plan, busy, degraded, error, cancel, book, replan }: {
+export function ConfirmDialog({ input, plan, busy, degraded, error, cancel, book, replan, tourHost }: {
   input: ReservationRequest | null; plan: PlanResponse | null; busy: boolean; degraded: boolean; error: DeskApiError | null;
-  cancel: () => void; book: () => void; replan: () => void;
+  cancel: () => void; book: () => void; replan: () => void; tourHost?: (node: HTMLDivElement | null) => void;
 }) {
   const refused = !!error && !["INTERNAL", "RATE_LIMITED", "STORAGE_UNAVAILABLE"].includes(error.code);
   return <Dialog open={!!input} onOpenChange={open => { if (!open && !busy) cancel(); }}>
     <DialogContent showCloseButton={false} className="confirm-popup" aria-busy={busy}
-      finalFocus={() => document.getElementById("desk-receipt") ?? document.getElementById("stale-replan") ?? document.querySelector<HTMLButtonElement>(".budget-bottom button")}>
+      finalFocus={() => (tourHost && document.querySelector<HTMLElement>(".tour-coach:not(.in-dialog)")) ?? document.getElementById("desk-receipt") ?? document.getElementById("stale-replan") ?? document.querySelector<HTMLButtonElement>(".budget-bottom button")}>
       <DialogHeader><div className="panel-icon"><TicketCheck /></div><DialogTitle className="dialog-title">{copy.confirmTitle.th}</DialogTitle>
         <DialogDescription>{copy.exact.th}</DialogDescription></DialogHeader>
       {input && plan && <><BookingLines lines={input.lines} /><div className="total-line"><span>{copy.total.th}</span><b>{formatThb(plan.joint.extra_cost_thb)}</b></div>
@@ -41,11 +41,14 @@ export function ConfirmDialog({ input, plan, busy, degraded, error, cancel, book
       <div className="dialog-actions"><button className="outline-action" disabled={busy} onClick={cancel}>{copy.cancel.th}</button>
         <button className="primary-action" disabled={busy || (degraded && !refused)} onClick={refused ? replan : book}>
           {busy ? <LoaderCircle className="spin" /> : <Check />}{busy ? copy.booking.th : refused ? copy.replan.th : copy.confirm.th}</button></div>
+      {tourHost && <div className="tour-dialog-slot" ref={tourHost} />}
     </DialogContent>
   </Dialog>;
 }
 
-export function Receipt({ result, plan, newIncident, busy }: { result: ReservationResponse; plan: PlanResponse;
+type ReceiptData = StateResponse["reservations"][number] & { idempotency_key?: string };
+
+export function Receipt({ result, plan, newIncident, busy }: { result: { receipt: ReceiptData; replayed?: boolean }; plan: PlanResponse | null;
   newIncident: () => void; busy: boolean }) {
   const { receipt } = result;
   const [notice, setNotice] = useState("");
@@ -76,10 +79,10 @@ export function Receipt({ result, plan, newIncident, busy }: { result: Reservati
     <div className="panel-heading"><span className="panel-icon"><TicketCheck /></span><div><h2 id="receipt-heading">{copy.receipt.th}</h2><span lang="en">{copy.receipt.en}</span></div>
       <span className="receipt-badge"><Check />{copy.booked.th}</span></div>
     <div className="receipt-meta"><span className="receipt-reference" title={receipt.id}>{copy.receiptId.th} <b>{receipt.id.slice(0,8)}</b></span>
-      <span>{copy.time.th} <b>{formatBangkokTime(receipt.created_at)}</b></span><span title={receipt.idempotency_key}>{copy.replayKey.th} <b>{receipt.idempotency_key.slice(0,8)}</b></span></div>
+      <span>{copy.time.th} <b>{formatBangkokTime(receipt.created_at)}</b></span>{receipt.idempotency_key && <span title={receipt.idempotency_key}>{copy.replayKey.th} <b>{receipt.idempotency_key.slice(0,8)}</b></span>}</div>
     <BookingLines lines={receipt.lines} /><div className="total-line"><span>{copy.total.th}</span><b>{formatThb(receipt.total_extra_cost_thb)}</b></div>
     {result.replayed && <p>{copy.replayed.th}</p>}
-    {plan.joint.needs_human.length > 0 && <p>{copy.needsHuman.th} {plan.joint.needs_human.map(o => "#" + o.order_id).join(", ")}</p>}
+    {plan && plan.joint.needs_human.length > 0 && <p>{copy.needsHuman.th} {plan.joint.needs_human.map(o => "#" + o.order_id).join(", ")}</p>}
     <div className="receipt-actions"><button className="outline-action" onClick={copyText}><Copy />{copy.copyReceipt.th}</button><button type="button" className="outline-action" onClick={downloadCsv}><Download aria-hidden />{polishCopy.download.th}</button><small role="status">{notice}</small>
       <button className="primary-action" disabled={busy} onClick={newIncident}><RotateCcw />{copy.newIncident.th}</button></div>
   </section>;

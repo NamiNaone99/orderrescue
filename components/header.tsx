@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Boxes, ChevronDown, Clock3, Code2, Database, FlaskConical, Layers3, LayoutDashboard } from "lucide-react";
-import { copy } from "@/lib/copy";
+import { Boxes, ChevronDown, Clock3, Code2, Database, Play, FlaskConical, Layers3, LayoutDashboard } from "lucide-react";
+import { copy, tourCopy } from "@/lib/copy";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { ModeBadges } from "./mode-badges";
 import { ResetControl } from "./reset-control";
@@ -58,7 +58,13 @@ export function Header({ scenarios, scenario, pathname, href, onSelect, onReset 
           <Clock3 size={16} aria-hidden /><span>{copy.scenarioTime.th} <b>{formatBangkokTime(scenario.now_at)}</b></span>
         </TooltipTrigger><TooltipContent role="tooltip" id="scenario-clock-hint" className="text-sm">{copy.scenarioHint.th}</TooltipContent></Tooltip>
       </div>
-      <div className="system-tools"><ModeBadges /><ResetControl key={scenario.id} scenario={scenario} onReset={onReset} /></div>
+      <div className="system-tools"><ModeBadges /><button id="start-guided-demo" className="toolbar-button tour-entry" type="button" onClick={() => {
+        const url = new URL("/", window.location.origin);
+        url.searchParams.set("scenario", "hero");
+        url.searchParams.set("tour", "1");
+        if (new URLSearchParams(window.location.search).get("notes") === "1") url.searchParams.set("notes", "1");
+        window.location.assign(url.toString());
+      }}><Play aria-hidden size={16} />{tourCopy.start.th}<span lang="en">{tourCopy.start.en}</span></button><ResetControl key={scenario.id} scenario={scenario} onReset={onReset} /></div>
     </div></div>
   </header>;
 }

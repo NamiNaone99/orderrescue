@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, TriangleAlert } from "lucide-react";
+import { GuidedDemo, editTourUrl } from "@/components/desk/guided-demo";
 import { DemoGuide } from "@/components/desk/demo-guide";
 import { copy } from "@/lib/copy";
 import { useDesk, validBudget } from "@/lib/client/use-desk";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { DataBadge } from "@/components/header";
-import { useScenario } from "@/components/scenario-shell";
+import { useScenario, useDeskQuery } from "@/components/scenario-shell";
 import { ClarificationCard, IncidentCard, IncidentSkeleton, MessageInput } from "@/components/desk/message";
 import { BudgetControl, StockPanel } from "@/components/desk/controls";
 import { ConfirmDialog, ErrorNotice, Receipt } from "@/components/desk/booking";
@@ -28,6 +29,13 @@ export default function DeskPage() {
   const scenario = useScenario();
   const desk = useDesk(scenario.id, scenario);
   const { s } = desk;
+  const query = useDeskQuery();
+  const params = new URLSearchParams(query);
+  const touring = scenario.id === "hero" && params.get("tour") === "1";
+  const [tourHost, setTourHost] = useState<HTMLDivElement | null>(null);
+  const saved = !s.interpretation && !s.manualIncident && !s.booked
+    ? s.stock?.reservations.find(receipt => receipt.id === params.get("receipt")) : undefined;
+  const shownReceipt = s.booked ?? (saved ? { receipt: saved } : null);
   const health = useServiceHealth();
   const input = useRef<HTMLTextAreaElement>(null);
   const [manualOpen, setManualOpen] = useState(false);
@@ -51,6 +59,7 @@ export default function DeskPage() {
     void desk.analyse();
   }
   useEffect(() => {
+    if (touring) return;
     if (s.booked) document.getElementById("desk-receipt")?.focus();
     else if ((s.interpretation || s.manualIncident) && !document.querySelector('[role="dialog"]')) {
       const incident = document.getElementById("desk-incident");
@@ -59,9 +68,9 @@ export default function DeskPage() {
         reveal(incident);
       }
     }
-  }, [s.interpretation, s.manualIncident, s.booked]);
+  }, [s.interpretation, s.manualIncident, s.booked, touring]);
   useEffect(() => {
-    if (!s.plan || !revealInitialPlan.current) return;
+    if (touring || !s.plan || !revealInitialPlan.current) return;
     revealInitialPlan.current = false;
     const timer = window.setTimeout(() => {
       if (document.activeElement?.id === "desk-incident" && !document.querySelector('[role="dialog"]')) {
@@ -79,9 +88,9 @@ export default function DeskPage() {
       window.removeEventListener("touchstart", cancel);
       window.removeEventListener("keydown", cancel);
     };
-  }, [s.plan]);
-  const step = manualOpen ? 1 : s.booked || s.confirmation ? 3 : s.plan ? 2 : s.interpretation || s.manualIncident ? 1 : 0;
-  const locked = !!s.booked || !!s.confirmation || !!s.stale;
+  }, [s.plan, touring]);
+  const step = manualOpen ? 1 : shownReceipt || s.confirmation ? 3 : s.plan ? 2 : s.interpretation || s.manualIncident ? 1 : 0;
+  const locked = !!shownReceipt || !!s.confirmation || !!s.stale;
   const manualDisabled = !s.stock || !!s.confirmation || s.busy === "book" || s.busy === "reset" || s.busy === "event";
   const sku = s.sku || scenario.default_sku_id;
   const loading = s.busy === "plan" || s.busy === "interpret";
@@ -100,7 +109,7 @@ export default function DeskPage() {
     if (s.confirmation) return "dialog";
     if (s.stale) return "replan";
     if (s.error) return "retry";
-    if (s.booked) return "new";
+    if (shownReceipt) return "new";
     if (s.plan) {
       if (!s.plan.affected.length && scenario.id === "hero") return "reset";
       if (!s.plan.joint.lines.length && s.plan.joint.needs_human.some(row => row.reason === "OVER_BUDGET")) return "budget";
@@ -111,15 +120,15 @@ export default function DeskPage() {
     if (s.interpretation?.outcome === "ignore") return "rewrite";
     return "analyse";
   }
-  return <div className="shell-width desk dispatch" data-step={step} data-scenario={scenario.id} data-action={mobileAction()}>
+  return <div className="shell-width desk dispatch" data-step={step} data-scenario={scenario.id} data-action={mobileAction()} data-touring={touring || undefined}>
     <div className="desk-heading"><div><div className="heading-line"><h1>{copy.desk.th}</h1><span lang="en">{copy.desk.en}</span></div>
       <p>{copy.tagline.th}</p></div><div className="desk-heading-tools"><DataBadge scenario={scenario} /><DemoGuide /></div></div>
-    <ol className="workflow" aria-label={copy.workflow.th}>{steps.map((label, i) => <li data-complete={i < step || (!!s.booked && !manualOpen)} aria-current={i === step ? "step" : undefined} key={label.en}>
-      <span className="step-count">{i < step || (s.booked && !manualOpen) ? <Check aria-hidden /> : i + 1}</span>{label.th}{i < 3 && <span className="step-rule" aria-hidden />}</li>)}</ol>
+    <ol className="workflow" aria-label={copy.workflow.th}>{steps.map((label, i) => <li data-complete={i < step || (!!shownReceipt && !manualOpen)} aria-current={i === step ? "step" : undefined} key={label.en}>
+      <span className="step-count">{i < step || (shownReceipt && !manualOpen) ? <Check aria-hidden /> : i + 1}</span>{label.th}{i < 3 && <span className="step-rule" aria-hidden />}</li>)}</ol>
     <div id="desk-announcements" className="sr-only" role="status" aria-live="polite" aria-atomic="false">
       <p>{s.busy === "interpret" ? copy.analysing.th : analysis}</p>
       <p>{s.stale ? (s.stale.refusal ? copy.bookingRefused.th : copy.stockChanged.th) : s.busy === "plan" ? copy.planning.th : summary}</p>
-      <p>{s.booked ? (s.booked.replayed ? copy.replayed.th : copy.booked.th) : s.error?.operation === "book" ? copy.bookingRefused.th : ""}</p>
+      <p>{shownReceipt ? (s.booked?.replayed ? copy.replayed.th : copy.booked.th) : s.error?.operation === "book" ? copy.bookingRefused.th : ""}</p>
     </div>
     {health?.degraded && <div className="desk-error storage-banner" role="status"><TriangleAlert aria-hidden /><strong>{copy.degraded.th}</strong></div>}
     {s.error && !s.confirmation && <ErrorNotice error={s.error.api} retry={desk.retry} booking={s.error.operation === "book"} />}
@@ -141,16 +150,20 @@ export default function DeskPage() {
           <h2 id="manual-result">{copy.manualEntered.th}</h2><p>{copy.warehouse.th} {s.manualIncident.warehouse_id} · {s.manualIncident.sku_id}</p>
           <p>{copy.blocked.th} {formatBangkokTime(s.manualIncident.window_start)}–{formatBangkokTime(s.manualIncident.window_end)}</p></section>}
       </div>
-      <PlanCompare plan={s.plan} loading={loading} booked={!!s.booked} stale={!!s.stale}
+      <PlanCompare plan={s.plan} loading={loading} booked={!!shownReceipt} stale={!!s.stale}
         notice={s.stale && <StaleBanner changes={s.stale.changes} refusal={s.stale.refusal} pending={!!s.busy} replan={desk.replan} />}
         reset={scenario.id === "hero" ? () => { setManualOpen(false); void desk.startAgain(); } : undefined} resetDisabled={!!s.busy || !!health?.degraded} />
-      <div className="stock-column"><StockPanel stock={s.stock} sku={sku} incident={desk.incident} plan={s.plan} receipt={s.booked?.receipt} waiting={s.busy === "interpret"} />
+      <div className="stock-column"><StockPanel stock={s.stock} sku={sku} incident={desk.incident} plan={s.plan} receipt={shownReceipt?.receipt} waiting={s.busy === "interpret"} />
         <DemoEvents events={s.stock?.scenario.demo_events ?? scenario.demo_events} disabled={!s.stock || !!s.busy || !!s.confirmation} apply={desk.applyEvent} /></div>
-      {!s.booked && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
+      {!shownReceipt && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
         busy={!!s.busy} locked={!s.stock || locked} stale={!!s.stale} canBook={!!s.plan?.joint.lines.length && !!s.plannedInput && !s.error && !health?.degraded && !manualOpen} open={desk.openDialog} />}
-      {s.booked && s.plan && <Receipt result={s.booked} plan={s.plan} newIncident={desk.startAgain} busy={!!s.busy} />}
+      {shownReceipt && <Receipt result={shownReceipt} plan={s.plan} newIncident={() => {
+        if (params.has("receipt")) editTourUrl(p => p.delete("receipt"));
+        void desk.startAgain();
+      }} busy={!!s.busy} />}
     </div>
     <ConfirmDialog input={s.confirmation} plan={s.plan} busy={s.busy === "book"} degraded={!!health?.degraded} error={s.error?.operation === "book" ? s.error.api : null}
-      cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
+      tourHost={touring ? setTourHost : undefined} cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
+    {touring && <GuidedDemo desk={desk} query={query} host={tourHost} degraded={!!health?.degraded} restored={saved} />}
   </div>;
 }
