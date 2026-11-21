@@ -20,14 +20,11 @@ function unservedReason(hasStock: boolean, hasOnTimeSource: boolean, hasAffordab
   return hasAffordableSource ? "NOT_SELECTED" : "OVER_BUDGET";
 }
 
-export function prepareCandidates(
-  snapshot: Snapshot, incident: PlanRequest["incident"], affected: readonly AffectedOrder[], budget: number,
-) {
-  const now = snapshot.scenario.now_at;
+export function sourceRows(stock: Snapshot["stock"], now: string, incident: PlanRequest["incident"]) {
   const nowMs = toEpochMs(now);
   const start = toEpochMs(incident.window_start);
   const end = toEpochMs(incident.window_end);
-  const rows = snapshot.stock.filter(row => row.sku_id === incident.sku_id).map(row => {
+  return stock.filter(row => row.sku_id === incident.sku_id).map(row => {
     const rowMs = toEpochMs(row.ready_at);
     let readyMs = Math.max(nowMs, rowMs);
     let readyAt = rowMs >= nowMs ? row.ready_at : now;
@@ -40,6 +37,12 @@ export function prepareCandidates(
       unitCost: row.warehouse_id === incident.warehouse_id ? 0 : row.extra_cost_per_unit_thb,
     };
   });
+}
+
+export function prepareCandidates(
+  snapshot: Snapshot, incident: PlanRequest["incident"], affected: readonly AffectedOrder[], budget: number,
+) {
+  const rows = sourceRows(snapshot.stock, snapshot.scenario.now_at, incident);
   // Stable sorting by cost below preserves this tie-break for both greedy passes.
   rows.sort((a, b) => a.readyMs - b.readyMs || compareIds(a.row.warehouse_id, b.row.warehouse_id));
 

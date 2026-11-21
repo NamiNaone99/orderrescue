@@ -152,6 +152,36 @@ export function bilingual(label: CopyEntry): string {
 
 function words(th: string, en: string): CopyEntry { return { th, en }; }
 
+export const insightCopy = {
+  frontier: words("งบเท่าไหร่ ส่งทันกี่ออเดอร์", "Budget frontier"),
+  why: words("ทำไมถึงเป็นแผนนี้", "Why this plan"),
+  current: words("งบปัจจุบัน", "Current budget"),
+  change: words("ปรับงบประมาณ", "Adjust budget"),
+  count: words("ออเดอร์ที่ส่งทัน", "On-time orders"),
+  budgetAxis: words("งบ (บาท)", "Budget (THB)"),
+  exact: words("งบขั้นต่ำที่ทำให้ส่งทันเพิ่มขึ้น", "Minimum budget for each gain"),
+  sampled: words("เส้นประแสดงจำนวนขั้นต่ำที่ยืนยันได้ ณ งบที่ตรวจ จุดเปลี่ยนจริงอาจอยู่ระหว่างจุด", "Dashed steps show feasible counts at checked budgets. A gain may occur between samples."),
+  budgetValue: words("งบ {budget} ส่งทัน {count} ออเดอร์", "Budget {budget}, {count} on-time orders"),
+  loading: words("กำลังเปรียบเทียบงบประมาณ…", "Comparing budgets…"),
+  unavailable: words("ยังเปรียบเทียบงบไม่ได้", "Budget comparison unavailable"),
+  changed: words("ข้อมูลเปลี่ยนระหว่างเปรียบเทียบ กรุณาวางแผนใหม่", "Data changed during comparison. Replan to refresh."),
+  retry: words("ลองเปรียบเทียบอีกครั้ง", "Retry budget comparison"),
+  allocation: words("ดูแต่ละคลังโดยคงการจัดสรรของออเดอร์อื่นตามแผนร่วม", "Each alternative keeps other joint allocations in place."),
+  manual: words("ต้องให้คนดูแล", "Needs a person"),
+  units: words("หน่วย", "units"),
+  by: words("ต้องส่งก่อน", "Deadline"),
+  chosen: words("เลือกคลังนี้ · พร้อม {ready}", "Selected · ready {ready}"),
+  missing: words("ไม่มีสต็อกของสินค้านี้", "No stock row for this SKU"),
+  stock: words("สต็อกไม่พอ · ว่าง {free} หน่วย", "Insufficient stock · {free} free"),
+  late: words("ส่งไม่ทัน · พร้อม {ready}", "Too late · ready {ready}"),
+  budget: words("เกินงบ · เหลือ {budget} หากเปลี่ยนคลัง", "Over budget · {budget} left for this order"),
+  allocated: words("สต็อกจัดให้ออเดอร์อื่นแล้ว · เหลือ {remaining} หน่วย", "Stock allocated to other orders · {remaining} left"),
+  higherCost: words("ส่งทัน · แพงกว่าคลังที่เลือก {premium}", "On time · costs {premium} more than the selected source"),
+  tie: words("ส่งทันและราคาเท่ากัน · เลือกตามลำดับรหัสคลัง", "Same on-time result and cost · warehouse ID breaks the tie"),
+  feasible: words("เป็นทางเลือกที่ส่งทันได้ในแผนที่ยังไม่พิสูจน์ · พร้อม {ready}", "Feasible alternative to the bounded result · ready {ready}"),
+  noOrders: words("ไม่มีออเดอร์ที่ได้รับผลกระทบ", "No affected orders"),
+};
+
 export const dataCopy = {
   title: words("ข้อมูลในเดโมนี้มาจากไหน", "Where the data in this demo comes from"),
   labels: {
