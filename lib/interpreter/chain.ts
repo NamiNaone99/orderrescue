@@ -45,18 +45,19 @@ function failureReason(error: unknown) {
 export async function interpret(
   message: string,
   snapshot: Snapshot,
-  deps: { clients?: readonly InterpreterClient[] } = {},
+  deps: { clients?: readonly InterpreterClient[]; allowAttempt?: () => boolean } = {},
 ): Promise<InterpretResponse> {
   const started = performance.now();
   const checkedMessage = checkMessage(message);
   const attempts: Attempt[] = [];
+  let rateLimited = false;
 
   function finish(answer: ReturnType<typeof validate>, used: string): InterpretResponse {
     const [issue] = answer.validation.issues;
     attempts.push(issue ? { name: used, ok: false, reason: issue } : { name: used, ok: true });
     return {
       ...answer,
-      interpreter: { used, attempts, latency_ms: Math.round(performance.now() - started), rate_limited: false },
+      interpreter: { used, attempts, latency_ms: Math.round(performance.now() - started), rate_limited: rateLimited },
     };
   }
 
@@ -64,6 +65,10 @@ export async function interpret(
   if (clients.length) {
     const systemPrompt = buildSystemPrompt(snapshot);
     for (const client of clients) {
+      if (deps.allowAttempt && !deps.allowAttempt()) {
+        rateLimited = true;
+        break;
+      }
       try {
         const response = await runClient(client, systemPrompt, checkedMessage);
         if (response.status !== "parsed") {

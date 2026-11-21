@@ -1,10 +1,22 @@
 import "server-only";
 import { MemoryStore } from "./memory";
-import type { Store } from "./types";
+import { StoreError, type Store } from "./types";
 
 const memory = new MemoryStore();
-const stores = new Map<string, Store>([["memory", memory]]);
+
+async function refuseWrite(): Promise<never> {
+  throw new StoreError("STORAGE_UNAVAILABLE", "Configured storage is unavailable");
+}
+
+// Keep reads available without accepting confirmations into a different store.
+const unavailableSupabase: Store = {
+  getSnapshot: (scenario, opts) => memory.getSnapshot(scenario, opts),
+  health: async () => ({ storage: "memory", degraded: true }),
+  reserve: refuseWrite,
+  applyDemoEvent: refuseWrite,
+  reset: refuseWrite,
+};
 
 export function getStore(): Store {
-  return stores.get(process.env.STORAGE_MODE ?? "memory") ?? memory;
+  return process.env.STORAGE_MODE === "supabase" ? unavailableSupabase : memory;
 }
