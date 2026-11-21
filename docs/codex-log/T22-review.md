@@ -4,7 +4,7 @@ Reviewed all 55 commits reachable from `17a9dc5`, including the scaffold tree at
 
 ## Findings
 
-There were no P0 findings. The release owner selected F1, F3 and F2, in that order, for three separate fix chats with failing-before regressions. These describe the implementation at review time. The fixes need their own verification.
+There were no P0 findings. The table records the original findings at `17a9dc5`. Three separate fix chats corrected all three P1s and added failing-before regressions. The five P2 findings remain open and are listed in the [README](../../README.md#open-review-findings).
 
 | Priority / finding | Frozen file and line | Effect and evidence | Smallest correction |
 | --- | --- | --- | --- |
@@ -16,6 +16,16 @@ There were no P0 findings. The release owner selected F1, F3 and F2, in that ord
 | P2 F6 · Three planner release claims lack committed regression gates | `tests/planner/solver.test.ts:6–55`, `tests/planner/hash.test.ts:66`, `docs/CODEX_TASKS.md:443–460` | The frozen suite checks the hero, a 12-order optimum, permutations and specific node caps. It lacks the AC-10 generated count property, an independent complete-objective AC-11 oracle and the AC-12 timed 40-order gate. This is a verification gap. | Run the specified T14 property, oracle and scale cases and publish the genuine measured results. |
 | P2 F7 · A desk can display an old storage badge during an outage | `components/mode-badges.tsx:15–31`, `lib/store/index.ts:20–45` | Health updates on mount or window focus. A foreground read can already have fallen back to memory while the desk still shows its previous database badge. The scenario guard in the affected store instance still refuses writes to fallback memory. Its state is local to that instance. | Propagate the actual read mode to the desk or refresh health after an operational failure/recovery. Include a transition test with the tab continuously focused. |
 | P2 F8 · Budget range differs between the public API and PostgreSQL | `lib/domain/contracts.ts:5,181`, `supabase/migrations/20261121044705_init.sql:59,125` | A schema check accepted a valid hero request with a ฿2,147,483,648 budget. Planning and memory support this safe integer, while database booking uses a signed 32-bit integer and cannot store it. | Agree on a maximum across contracts and stores, validate it before planning, and add a shared boundary test. This is outside the fixture budgets. |
+
+## Disposition of the three P1 findings
+
+| Finding | Fix commit | Regression and remaining scope |
+| --- | --- | --- |
+| F1 · Closed | [`1be96da`](T22-F1.md) | Both a dropped HTTP response and a substituted storage 503 after a real local commit keep the original payload/key through a state poll. Retry returns the original receipt, and the store guard continues to refuse degraded writes. A definitive 409 still discards the key. |
+| F2 · Closed | [`8e3f453`](T22-F2.md) | The shared streaming reader accepts 16,384 bytes and rejects 16,385 with 413. The per-IP plan and reservation bucket allows a burst of 20 and refills one token per second. The tests cover inaccurate or absent length headers, UTF-8 chunking, independent IPs and refill boundaries. The bucket is per server instance. |
+| F3 · Closed | [`58dbf41`](T22-F3.md) | The original `SKU-X` case now asks for a warehouse. Adding “Warehouse A” without any time asks for a time. Both return `incident: null`. The tests cover named shifts, written times, colloquial Thai cues, exact samples and incomplete messages. Spoken warehouse aliases and times still depend on model interpretation. Unrecognized phrasing can prompt for clarification, and the cue checks do not independently establish the intended meaning of every colloquial utterance. |
+
+The three fixes were integrated at `fb5c5a9`. The four architecture proposals below still await a team decision. [Combined verification](T22.md#combined-fix-verification)
 
 ## Acceptance coverage at the frozen commit
 
