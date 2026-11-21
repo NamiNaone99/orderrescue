@@ -1,151 +1,167 @@
 # OrderRescue
 
-OrderRescue is a Thai-first dispatch desk for a wholesaler with several stock locations. An operator pastes a warehouse message, checks the interpreted picking interruption and compares first-come allocation with a joint plan under one extra-cost budget. After the operator confirms the exact rows, the server reserves the stock and returns a receipt. A stock change can make an unbooked plan stale.
+**ภาษาไทย** · [English](README.en.md)
 
-```text
-Live: <to fill>
-```
+OrderRescue คือโต๊ะจัดส่งสำหรับผู้ค้าส่งที่มีสินค้าหลายคลัง เมื่อคลังแจ้งว่าหยิบสินค้าไม่ได้ พนักงานจัดส่งวางข้อความภาษาไทยลงในแอป ตรวจว่าแอปอ่านคลัง สินค้า และช่วงเวลาถูกต้อง แล้วเปรียบเทียบสองวิธีจัดออเดอร์ภายใต้งบเดียวกัน ได้แก่ จัดตามลำดับที่รับออเดอร์ หรือพิจารณาทุกออเดอร์ร่วมกัน พนักงานตรวจรายการก่อนยืนยัน ระบบจึงจองสต็อกและออกใบจอง หากสต็อกเปลี่ยนก่อนจอง ระบบจะแจ้งว่าแผนเดิมใช้ต่อไม่ได้
 
-Application development started 21 Nov 2026 10:25 ICT.
+[เปิดโต๊ะจัดส่ง](https://orderrescue.vercel.app/) · [เริ่มสาธิตพร้อมบทพูดสำหรับผู้นำเสนอ](https://orderrescue.vercel.app/?tour=1&notes=1)
 
-## Try the synthetic hero
+Team AornSorn เริ่มพัฒนาแอปเมื่อ 21 พฤศจิกายน 2026 เวลา 10:25 น. ตามเวลาไทย (ICT)
 
-Open the desk and select **วิธีใช้เดโม** for the read-only Thai walkthrough. Select the hero scenario and analyse **คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้**. At 12:30, warehouse A reports that it cannot pick SKU-X from 13:00 to 18:00. Both orders need eight units. B has eight free at 13:30 for ฿4 per unit. C has eight free at 15:00 for ฿7 per unit. The budget is ฿100. [Open the live desk](https://orderrescue.vercel.app)
+<a name="try-the-synthetic-hero"></a>
 
-| Strategy | #101, due 14:00 | #102, arrived first, due 16:00 | On time | Extra cost |
+## ลองจัดออเดอร์จากสถานการณ์จำลอง
+
+เลือกสถานการณ์ **hero** บนโต๊ะจัดส่ง หากต้องการอ่านคำแนะนำโดยไม่เปลี่ยนข้อมูล ให้เลือก **วิธีใช้เดโม** จากนั้นลองกด **วิเคราะห์ข้อความ** กับตัวอย่าง **คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้** ขณะนั้นเป็นเวลา 12:30 น. คลัง A จะงดหยิบตั้งแต่ 13:00 ถึง 18:00 น. ทั้งสองออเดอร์ต้องการสินค้าออเดอร์ละ 8 หน่วย คลัง B มีสินค้าว่าง 8 หน่วยตอน 13:30 น. มีค่าใช้จ่ายเพิ่มหน่วยละ ฿4 ส่วนคลัง C มี 8 หน่วยตอน 15:00 น. หน่วยละ ฿7 งบรวมคือ ฿100 [เปิดเดโม](https://orderrescue.vercel.app)
+
+| วิธีจัดออเดอร์ | #101 ต้องส่งก่อน 14:00 | #102 รับเข้าก่อน ต้องส่งก่อน 16:00 | ส่งทัน | ค่าใช้จ่ายเพิ่ม |
 | --- | --- | --- | --- | --- |
-| First-come | Needs a person | B | 1/2 | ฿32 |
-| Joint | B | C | 2/2 | ฿88 |
+| มาก่อนได้ก่อน | ต้องให้คนดูแล | คลัง B | 1/2 | ฿32 |
+| จัดร่วมกัน | คลัง B | คลัง C | 2/2 | ฿88 |
 
-Try ฿87 to give the one affordable slot to #101, or ฿31 to see both orders go to a person. Restore ฿100 and use the demo event to move B's ready time to 14:30. The desk marks the old plan stale. Replanning serves #102 from B for ฿32. Confirm that row to get a receipt you can copy or download as a CSV. [Hero fixture](lib/scenarios/hero.ts)
+ลองลดงบเหลือ ฿87 แผนร่วมจะให้ #101 ใช้คลัง B เพราะส่งได้ทันเพียงหนึ่งออเดอร์และ #101 ถึงกำหนดก่อน ถ้าลดเหลือ ฿31 ทั้งสองออเดอร์ต้องให้คนดูแล ลองกลับมาใช้งบ ฿100 แล้วเลือกเหตุการณ์ที่คลัง B เลื่อนเวลาพร้อมเป็น 14:30 น. ระบบจะแจ้งว่าแผนล้าสมัย เมื่อกด **วางแผนใหม่** จะเหลือเพียง #102 ที่ส่งทันจากคลัง B ในราคา ฿32 ตรวจรายการนี้แล้วกดยืนยันเพื่อรับใบจองที่คัดลอกหรือดาวน์โหลดเป็น CSV ได้ [ข้อมูลตั้งต้นของ hero](lib/scenarios/hero.ts)
 
-## How it works
+ปุ่ม **เริ่มสาธิต / Start demo** จะรีเซ็ตสถานการณ์ hero ที่ผู้ชมใช้ร่วมกัน แล้วพาผ่านโต๊ะจัดส่งจริง 8 ขั้นตอน ลิงก์สำหรับผู้นำเสนอเพิ่มบทพูดและตัวจับเวลา ทุกขั้นที่เปลี่ยนข้อมูลใช้ปุ่มเดียวกับที่พนักงานกดเอง การเปิดดูรายการจองและการยืนยันเป็นคนละขั้น เปิดลิงก์ใบจองเดิมอีกครั้งได้ ระบบจะแสดงใบจองพร้อมอัปเดตสต็อกของสินค้าที่จอง [ลำดับการสาธิต](docs/codex-log/TOUR.md) · [การเปิดใบจองเดิม](docs/codex-log/TOUR-F1.md)
 
-1. **Interpret.** The server reads the message with the OpenAI Responses API or matches a scenario sample in offline mode.
-2. **Validate.** Application code checks the warehouse, SKU, time window and verbatim evidence. The desk can ask for clarification or ignore an unrelated message. The operator can also enter an incident manually.
-3. **Plan.** For one SKU, deterministic code compares first-come with a bounded joint search. Both respect open orders, existing commitments, deadlines and the shared budget.
-4. **Confirm.** The operator reviews the assigned warehouse, quantity and unit cost for each served line. The dialog creates an idempotency key for that confirmation.
-5. **Reserve.** The server verifies the submitted hash and budget. The Store checks order lines and grouped stock revisions, then commits the confirmed rows together. Affected orders left out of the booking stay open for a person. Retrying the same key and hash returns the original receipt.
+<a name="how-it-works"></a>
 
-See the [request flow, trust boundaries and booking sequence](docs/ARCHITECTURE.md).
+## จากข้อความคลังถึงใบจอง
 
-## Run locally
+1. **อ่านเหตุการณ์** เซิร์ฟเวอร์ใช้ OpenAI Responses API เพื่ออ่านข้อความคลัง ในโหมดออฟไลน์จะเทียบกับข้อความตัวอย่างของสถานการณ์
+2. **ตรวจข้อมูล** โค้ดตรวจคลัง รหัสสินค้า ช่วงเวลา และข้อความอ้างอิงที่ต้องคัดมาตรงกับต้นฉบับ เมื่อข้อมูลไม่พอ ระบบจะถามเพิ่มเติม ถ้าเป็นข้อความคนละเรื่องก็จะข้าม พนักงานกรอกเหตุการณ์เองได้
+3. **วางแผน** สำหรับสินค้าแต่ละรหัส โค้ดเปรียบเทียบวิธีมาก่อนได้ก่อนกับการค้นหาแผนร่วมที่จำกัดจำนวนจุดค้นหา ทั้งสองวิธีใช้เฉพาะออเดอร์ที่ยังเปิด คำนึงถึงยอดจองเดิม กำหนดส่ง และงบรวม ข้อมูลชุดเดิมให้แผนเดิม
+4. **ยืนยันรายการ** พนักงานตรวจคลัง จำนวน และค่าใช้จ่ายต่อหน่วยของทุกรายการที่จะจอง เมื่อเปิดกล่องยืนยัน แอปจะสร้างรหัสประจำคำขอ (`idempotency key`) สำหรับการยืนยันครั้งนั้น
+5. **จองสต็อก** เซิร์ฟเวอร์ตรวจแฮชของแผนและงบ ชั้นจัดเก็บข้อมูล (`Store`) ตรวจรายการออเดอร์และเลขรุ่นของสต็อก โดยรวมรายการที่ใช้สต็อกแถวเดียวกันก่อนจองทั้งหมดในธุรกรรมเดียว ออเดอร์ที่ไม่ได้จัดยังเปิดให้พนักงานดูแล หากส่งคำขอซ้ำด้วยรหัสและแฮชเดิม ระบบจะคืนใบจองเดิม
 
-Use Node 22 and pnpm 9.15.9. Run these commands from the repository root in PowerShell.
+[แผนภาพการทำงาน ขอบเขตความรับผิดชอบ และลำดับการจอง](docs/ARCHITECTURE.md)
+
+<a name="run-locally"></a>
+
+## เปิดแอปบนเครื่อง
+
+ใช้ Node 22 และ pnpm 9.15.9 เปิด PowerShell ที่โฟลเดอร์รากของโปรเจกต์แล้วรัน
 
 ```powershell
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local URL printed by Next.js, normally `http://localhost:3000`. The committed seed runs without credentials. Local verification returned HTTP 200 for the desk and reported healthy memory storage and offline interpretation at `/api/health`.
+เปิด URL ที่ Next.js แสดง ปกติคือ `http://localhost:3000` ข้อมูลตั้งต้นที่อยู่ในโปรเจกต์ใช้ได้โดยไม่ต้องใส่คีย์ การตรวจบนเครื่องได้รับ HTTP 200 จากโต๊ะจัดส่ง และ `/api/health` รายงานว่าใช้หน่วยความจำและตัวอ่านข้อความแบบออฟไลน์ได้ตามปกติ
 
-| Server setting | Default and purpose |
+| ตัวแปรบนเซิร์ฟเวอร์ | ค่าเริ่มต้นและหน้าที่ |
 | --- | --- |
-| `STORAGE_MODE` | `memory` keeps the demo in the server process. `supabase` uses the configured database. |
-| `INTERPRETER_MODE` | `offline` handles the stored samples and asks for details on other messages. `openai` enables live parsing with a configured key. |
-| `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_FALLBACK_MODEL` | The server-side key enables live calls. The default primary is `gpt-6-luna` and the second model is `gpt-6.2-sol`. |
-| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | HTTPS project URL and server-side key for Supabase mode. |
-| `DEMO_RESET_TOKEN` | Authorizes a real-day reset or reset of all scenarios. |
-| `INTERPRET_DAILY_CAP`, `INTERPRET_BURST`, `INTERPRET_REFILL_MS` | Defaults are 500 live attempts per UTC day per server instance, a burst of 30 requests per IP, and one token every 2,000 ms. |
+| `STORAGE_MODE` | `memory` เก็บข้อมูลไว้ในโปรเซสของเซิร์ฟเวอร์ ส่วน `supabase` ใช้ฐานข้อมูลที่กำหนดไว้ |
+| `INTERPRETER_MODE` | `offline` อ่านตัวอย่างที่เก็บไว้และถามกลับเมื่อเจอข้อความอื่น ส่วน `openai` อ่านข้อความแบบออนไลน์เมื่อมีคีย์ |
+| `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_FALLBACK_MODEL` | คีย์ฝั่งเซิร์ฟเวอร์ใช้เรียกโมเดล ค่าเริ่มต้นของโมเดลหลักคือ `gpt-6-luna` และโมเดลสำรองคือ `gpt-6.2-sol` |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | URL โปรเจกต์แบบ HTTPS และคีย์ฝั่งเซิร์ฟเวอร์เมื่อใช้ Supabase |
+| `DEMO_RESET_TOKEN` | อนุญาตให้รีเซ็ตสถานการณ์ real-day หรือรีเซ็ตทุกสถานการณ์พร้อมกัน |
+| `INTERPRET_DAILY_CAP`, `INTERPRET_BURST`, `INTERPRET_REFILL_MS` | ต่อหนึ่งอินสแตนซ์ของเซิร์ฟเวอร์ ค่าเริ่มต้นให้ลองเรียกโมเดลได้ 500 ครั้งต่อวันตามเวลา UTC แต่ละ IP ส่งคำขอติดกันได้ 30 ครั้ง และได้สิทธิ์เพิ่ม 1 ครั้งทุก 2,000 มิลลิวินาที |
 
-Optional settings belong in the gitignored `.env.local`. The browser calls the app's route handlers. See the [example environment](.env.example).
+ใส่ค่าเพิ่มเติมใน `.env.local` ซึ่ง Git ไม่ติดตาม เบราว์เซอร์เรียกเฉพาะ API ของแอป [ตัวอย่างการตั้งค่า](.env.example)
 
-## Tests and checks
+<a name="tests-and-checks"></a>
 
-Local checks used Windows, Node 22.20.0, memory storage and offline interpretation. Browser checks use the Chromium build installed by `pnpm exec playwright install chromium` (completed successfully).
+## การทดสอบและผลที่บันทึกไว้
 
-| Command | Observed result |
+ทีมตรวจบน Windows ด้วย Node 22.20.0 โดยใช้โหมดหน่วยความจำและตัวอ่านแบบออฟไลน์ การทดสอบผ่านเบราว์เซอร์ใช้ Chromium ที่ติดตั้งสำเร็จด้วย `pnpm exec playwright install chromium`
+
+| คำสั่ง | ผลที่บันทึกไว้ |
 | --- | --- |
-| `pnpm lint` | Passed. |
-| `pnpm typecheck` | Passed. |
-| `pnpm build`, then `pnpm start` | Production build passed and the local production server served the desk and API. |
-| `pnpm test` | 291 passed after the T14 build, including planner properties, scale checks and the browser-asset scan. The 19 opt-in hosted database contracts were skipped. |
-| `pnpm test:tz` | 48 domain checks passed in UTC and 48 passed in Asia/Bangkok. |
-| `pnpm e2e` | All 23 local Chromium cases passed in 2.5 minutes on the T14 production build. |
-| `pnpm smoke` | All 4 local smoke checks passed. |
-| `pnpm audit --prod` | One moderate advisory in `minimatch@10.2.6`, pulled in by shadcn through ts-morph. Exit 1. [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) |
-| `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
-| `pnpm eval --live --split heldout` with the human corpus | `run by the team: <to fill>` |
+| `pnpm lint` | ผ่าน |
+| `pnpm typecheck` | ผ่าน |
+| `pnpm build` แล้ว `pnpm start` | สร้างรุ่น production สำเร็จ และเซิร์ฟเวอร์บนเครื่องให้บริการโต๊ะจัดส่งและ API ได้ |
+| `pnpm test` | หลังสร้างแอปใน T14 ผ่าน 291 กรณี รวมการตรวจคุณสมบัติของตัววางแผน การทดสอบตามขนาดงาน และการสแกนไฟล์ที่ส่งให้เบราว์เซอร์ ข้ามการทดสอบฐานข้อมูลบนโฮสต์ 19 กรณีที่ต้องเลือกเปิดเอง |
+| `pnpm test:tz` | ใน T14 ผ่าน 48 กรณีใน UTC และ 48 กรณีใน Asia/Bangkok |
+| `pnpm e2e` | ผ่านทั้ง 23 กรณีใน Chromium บนเครื่อง ใช้เวลา 2.5 นาทีบนรุ่น production ของ T14 |
+| `pnpm smoke` | ผ่านการตรวจเส้นทางหลักทั้ง 4 กรณีบนเครื่อง |
+| `pnpm audit --prod` | ผลตรวจพบประกาศความเสี่ยงระดับปานกลาง 1 รายการใน `minimatch@10.2.6` ซึ่ง shadcn ดึงมาผ่าน ts-morph คำสั่งจบด้วยรหัส 1 [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) |
+| `pnpm test:db` กับ Supabase บนโฮสต์ | ทีมรันใน T15 ผ่าน 19/19 กรณี ภายใน 34.50 วินาที สำหรับรุ่นนี้ให้ทีมบันทึกผลที่ช่อง `run by the team: <to fill>` [บันทึกผลบนโฮสต์](docs/codex-log/T15.md) |
+| `pnpm eval --live --split heldout` กับชุดข้อความที่คนเขียน | `run by the team: <to fill>` |
 
-## Data and evaluation
+<a name="data-and-evaluation"></a>
 
-| Label | What it covers |
+## ที่มาของข้อมูลและผลประเมินการอ่านข้อความ
+
+| ประเภท | ข้อมูลที่อยู่ในประเภทนี้ |
 | --- | --- |
-| **Real** | Invoice IDs, SKU codes, product names, quantities and arrival times of day from a UK retailer on 22 Nov 2011. Source country and GBP unit prices are retained in the derived data. |
-| **Simulated** | Warehouses, inventory, commitments, deadlines, ready times and transfer costs in THB. |
-| **Synthetic** | The hero scenario and all Thai chat messages. |
+| **ข้อมูลจริง (Real)** | เลขใบกำกับสินค้า รหัสสินค้า ชื่อสินค้า จำนวน และเวลาที่รับออเดอร์ของร้านค้าปลีกในสหราชอาณาจักรเมื่อ 22 พฤศจิกายน 2011 ชุดข้อมูลที่ประมวลผลแล้วยังเก็บประเทศและราคาต่อหน่วยในสกุล GBP |
+| **ข้อมูลจำลอง (Simulated)** | คลังสินค้า สินค้าคงคลัง ยอดจองเดิม กำหนดส่ง เวลาที่สินค้าพร้อม และค่าโอนสินค้าระหว่างคลังในหน่วยบาท |
+| **ข้อมูลสมมติ (Synthetic)** | สถานการณ์ hero และข้อความแชตภาษาไทยทั้งหมด |
 
-The real-day build filtered 3,967 source rows to 2,802 rows and merged repeated invoice/SKU pairs into 2,674 lines on 129 orders covering 1,190 SKUs. It shifted dates to 21 Nov 2026, replaced customer IDs with linkable opaque references and treated the full day's order book as known at 12:30. The app's `/data` page shows field-level provenance. [Dataset transformations](data/ATTRIBUTION.md)
+สำหรับ real-day ทีมกรองข้อมูลต้นทาง 3,967 แถวเหลือ 2,802 แถว แล้วรวมรายการที่มีเลขใบกำกับสินค้าและรหัสสินค้าเดียวกัน เหลือ 2,674 รายการย่อยใน 129 ออเดอร์ ครอบคลุม 1,190 รหัสสินค้า ระบบเลื่อนวันที่มาเป็น 21 พฤศจิกายน 2026 แทนรหัสลูกค้าด้วยรหัสทดแทนที่ยังเชื่อมรายการของลูกค้าคนเดียวกันได้ และสมมติว่าพนักงานเห็นออเดอร์ทั้งวันแล้วเมื่อเวลา 12:30 น. หน้า `/data` แจกแจงที่มาทีละฟิลด์ [วิธีแปลงข้อมูล](data/ATTRIBUTION.md)
 
-The committed offline run was a small smoke evaluation on 3 synthetic team-written messages. It scored 3/3 outcome kinds, 1/1 incident field sets (warehouse, SKU, window and evidence) and 1/1 clarification topics, with zero false incidents and zero skipped rows. All three answers came from the offline reader. Recorded interpreter latency was 0 ms at p50 and 1 ms at p95. These were the stored hero samples, with two development rows and one held-out row. Individual author and checker fields are blank. The strict human-authored corpus and 30-row held-out AC-26 verdict remain outstanding. [Evaluation report](evals/results/2026-11-21T05-06-52.511Z-offline-all.json)
+ผลออฟไลน์ที่บันทึกไว้เป็นการตรวจเบื้องต้นด้วยข้อความสมมติ 3 ข้อความที่ทีมเขียนเอง ระบบจำแนกประเภทได้ถูกต้อง 3/3 กรณี อ่านฟิลด์เหตุการณ์ตรงครบ 1/1 กรณี (คลัง สินค้า ช่วงเวลา และข้อความอ้างอิง) และถามกลับถูกประเด็น 1/1 กรณี ไม่มีกรณีที่ตีความเป็นเหตุการณ์ผิดและไม่มีกรณีที่ถูกข้าม ทั้งสามคำตอบมาจากตัวอ่านออฟไลน์ เวลาที่บันทึกได้คือ 0 มิลลิวินาทีที่ p50 และ 1 มิลลิวินาทีที่ p95 ข้อความทั้งหมดมาจากตัวอย่าง hero แบ่งเป็นชุดพัฒนา 2 ข้อความและชุดกันไว้ประเมิน 1 ข้อความ ช่องชื่อผู้เขียนและผู้ตรวจแต่ละข้อความยังว่างอยู่ ชุดที่คนเขียนและตรวจแยกกันตามข้อกำหนด รวมถึงผล AC-26 สำหรับชุดประเมิน 30 ข้อความ ยังต้องให้ทีมดำเนินการ [รายงานการประเมิน](evals/results/2026-11-21T05-06-52.511Z-offline-all.json)
 
-## Operations
+<a name="operations"></a>
 
-1. **Reset.** The desk's Reset action restores the selected seed and removes its reservations. Hero allows six resets per minute per IP. Real-day and all-scenario resets require the token.
-2. **Smoke.** Run `pnpm smoke` locally. The deployed workflow checks each Vercel success for this project and runs the four shared hero checks. Choose a time between presentations. The suite restores the synthetic hero before it starts and after it finishes, including after a failed check.
-3. **Rollback.** In Vercel, use Instant Rollback to return traffic to the last deployment that passed smoke. Database schema corrections use a forward migration. [Deployment runbook](docs/DEPLOY_PLAN.md) · [Vercel rollback](https://vercel.com/docs/instant-rollback)
-4. **Service fallback.** The live interpreter tries its second model after a failed attempt, then uses the offline reader. A depleted live quota also selects offline. A degraded database can serve memory reads and refuses writes.
-5. **Demo fallback.** Use healthy production, then offline interpretation, then explicitly selected memory storage. On the fallback laptop, run `pnpm build` followed by `pnpm start` in memory/offline mode. A team-prepared recording is the final option when available.
+## การดูแลเดโม
 
-To run the production smoke from PowerShell, supply the existing reset token in your local shell:
+1. **รีเซ็ต** ปุ่มรีเซ็ตจะคืนข้อมูลตั้งต้นของสถานการณ์ที่เลือกและลบใบจองในสถานการณ์นั้น สำหรับ hero แต่ละ IP รีเซ็ตได้ 6 ครั้งต่อนาที การรีเซ็ต real-day หรือทุกสถานการณ์ต้องใช้โทเคน
+2. **ตรวจเส้นทางหลัก** รัน `pnpm smoke` บนเครื่อง หากตรวจกับระบบที่นำขึ้นใช้งานแล้ว ให้กำหนด `BASE_URL` เป็น URL เป้าหมาย การตรวจจะรีเซ็ตและจองสต็อกใน hero ที่ผู้ชมใช้ร่วมกัน ช่องบันทึกผลจากระบบจริงสำหรับทีมคือ `run by the team: <to fill>`
+3. **ย้อนรุ่น** ใช้ Instant Rollback ใน Vercel เพื่อส่งทราฟฟิกกลับไปรุ่นล่าสุดที่ผ่าน smoke test ถ้าต้องแก้โครงสร้างฐานข้อมูล ให้สร้าง migration ใหม่เพื่อแก้ไปข้างหน้า [คู่มือนำขึ้นใช้งาน](docs/DEPLOY_PLAN.md) · [วิธีย้อนรุ่นใน Vercel](https://vercel.com/docs/instant-rollback)
+4. **เมื่อบริการขัดข้อง** หากโมเดลหลักล้มเหลว ระบบจะลองโมเดลสำรองก่อนใช้ตัวอ่านออฟไลน์ เมื่อโควตาออนไลน์หมดก็จะใช้ออฟไลน์เช่นกัน หากฐานข้อมูลขัดข้อง ระบบยังอ่านจากหน่วยความจำได้ แต่จะปฏิเสธการเขียน
+5. **แผนสำรองสำหรับนำเสนอ** เริ่มจากระบบ production ที่ทำงานปกติ หากการอ่านข้อความออนไลน์มีปัญหาให้ใช้ออฟไลน์ หากต้องใช้เครื่องสำรองให้เลือกโหมดหน่วยความจำอย่างชัดเจนแล้วรัน `pnpm build` ตามด้วย `pnpm start` ในโหมด memory/offline หากทีมเตรียมวิดีโอไว้ สามารถใช้เป็นทางเลือกสุดท้าย
 
-```powershell
-$env:BASE_URL='https://orderrescue.vercel.app'; $env:DEMO_RESET_TOKEN='<token>'; pnpm smoke
-```
+API วางแผนและ API จองใช้โควตาเดียวกันต่อ IP ในแต่ละอินสแตนซ์ โดยส่งคำขอติดกันได้ 20 ครั้ง และได้สิทธิ์เพิ่ม 1 ครั้งต่อวินาที คำขอ JSON ที่มีขนาดเกิน 16,384 ไบต์จะได้รับ HTTP 413 ส่วนโควตาอ่านข้อความและโควตารีเซ็ต hero แยกจากกัน
 
-To reset only the synthetic hero from PowerShell:
+ช่องสำหรับทีมยืนยัน URL ที่ใช้ส่งผลงานคือ `Live: <to fill>`
 
-```powershell
-'{"scenario":"hero"}' | curl.exe --silent --show-error --fail -X POST "https://orderrescue.vercel.app/api/demo/reset" -H "Content-Type: application/json" --data-binary "@-"
-```
+<a name="limitations-and-scope"></a>
 
-The Actions **Deployed smoke** workflow also accepts the canonical production URL on `main`. It checks the deployment's health and commit before changing hero. Reviewed main-line deployments can use the repository's optional Vercel protection bypass. Preview commits run with the reviewed main-branch test harness and use the public hero endpoint. A protected, unreviewed preview reports an access failure. [Vercel repository dispatch](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events)
+## ข้อจำกัดและขอบเขต
 
-Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
+1. ขั้นตอนการทำงานของผู้ค้าส่งเป็นสมมติฐาน ทีมยังไม่ได้สังเกตการใช้งานจริงของลูกค้า
+2. ประโยชน์ที่เห็นใน real-day ขึ้นกับสต็อก กำหนดส่ง เวลาที่ของพร้อม และต้นทุนที่จำลองขึ้น
+3. โครงการใช้ใบกำกับสินค้าของร้านค้าปลีกในสหราชอาณาจักรแทนออเดอร์ของผู้ค้าส่งไทย
+4. การตรวจด้วย 3 ข้อความครอบคลุมเฉพาะตัวอย่างที่ให้มา ตัวตรวจมองหาข้อความที่ระบุคลังและเวลา รวมถึงชื่อรอบที่รู้จักและเวลาที่เขียนชัด การตีความชื่อเรียกคลังและเวลาแบบภาษาพูดยังต้องอาศัยโมเดล หากเจอถ้อยคำไม่คุ้น ระบบอาจถามกลับ ทีมยังต้องประเมินกับภาษาที่ใช้ในคลังจริงอย่างอิสระ
+5. แต่ละแผนรองรับสินค้า 1 รหัส และต้องจัดสินค้าทั้งรายการจากคลังเดียว
+6. แต่ละคู่คลังและรหัสสินค้ามีเวลาพร้อมหยิบเพียงค่าเดียว แบบจำลองยังไม่รวมเส้นทางขนส่ง ความจุรถ หรือเวลาเดินทาง
+7. การค้นหาหยุดที่ 200,000 จุด หากยังค้นไม่ครบ ระบบจะแจ้งว่าเป็นแผนที่ดีที่สุดที่พบ API ปฏิเสธเหตุการณ์ที่กระทบมากกว่า 60 ออเดอร์ [ผลตรวจตัววางแผนและเวลาที่ใช้](docs/SOLVER.md)
+8. เดโมใช้ข้อมูลร่วมกัน ผู้ชมรีเซ็ต hero ได้โดยไม่ต้องเข้าสู่ระบบ ระบบยังไม่มีบทบาทผู้ปฏิบัติงาน ข้อมูลในโหมดหน่วยความจำอยู่ได้เท่าอายุโปรเซสเซิร์ฟเวอร์นั้น
+9. พนักงานวางข้อความหรือเลือกข้อความตัวอย่าง แอปยังไม่ได้เชื่อมกับ LINE หรือ WhatsApp
+10. โครงการพัฒนาภายในหนึ่งวัน การตรวจความปลอดภัยและการทดสอบภายใต้โหลดครอบคลุมเฉพาะรายการที่บันทึกไว้
 
-## Limitations and scope
+<a name="open-review-findings"></a>
 
-1. The wholesaler workflow is a hypothesis. Customer usage has yet to be observed.
-2. The real-day benefit depends on simulated inventory, deadlines, readiness and costs.
-3. UK retail invoices stand in for a Thai wholesaler's order book.
-4. The three-message smoke covers the supplied samples. The validator checks for warehouse and time cues, including known shifts and written times. Spoken Thai aliases and times still rely on model interpretation, and unfamiliar phrasing can require clarification. Real warehouse language still needs independent evaluation.
-5. Each plan handles one SKU, with a whole order line assigned to one warehouse.
-6. Readiness is one timestamp per warehouse/SKU. Transport routing, vehicle capacity and travel times remain outside the model.
-7. The search stops at 200,000 nodes and labels the best result found if the search is incomplete. The planning API rejects incidents affecting more than 60 orders. [Solver validation and timings](docs/SOLVER.md)
-8. The demo has shared state, public hero reset and no login or operator roles. Memory-mode state lasts only for that server process.
-9. Messages are pasted or selected from samples. There is no LINE or WhatsApp integration.
-10. This was a one-day build. Security and load verification are limited to the recorded checks.
+### ประเด็นที่ยังเปิดจากการตรวจโค้ด
 
-### Open review findings
+รุ่นที่ตรวจ ณ `17a9dc5` มีข้อจำกัดระดับ P2 อยู่ 5 ข้อ งาน T14 ปิด F6 ด้วยการสร้างกรณีเปรียบเทียบกับวิธีมาก่อนได้ก่อน การไล่ตรวจทุกคำตอบตามเป้าหมายการจัดแผนทุกลำดับ และการจับเวลาที่ 40 ออเดอร์ เหลือข้อสังเกตระดับ P2 จาก T22 จำนวน 4 ข้อ [ผลตรวจ T22 และเกณฑ์ที่ครอบคลุม](docs/codex-log/T22-review.md) · [หลักฐาน T14](docs/codex-log/T14.md)
 
-The frozen implementation at `17a9dc5` had five P2 limitations. T14 closed F6 with a generated first-come comparison, a full-objective exhaustive oracle and a timed 40-order gate. Four P2 findings remain. [T22 findings and acceptance coverage](docs/codex-log/T22-review.md) · [T14 evidence](docs/codex-log/T14.md)
+- การลองเรียกโมเดลแต่ละครั้งมีเวลา 9 วินาที แต่การอ่านฐานข้อมูลก่อนเริ่มอาจทำให้คำขอ Interpret ทั้งหมดเกินเป้าหมาย 25 วินาที ขณะเดียวกัน log รายโมเดลยังไม่มีรหัสคำขอ HTTP จึงจับคู่ความพยายามแต่ละครั้งกับคำขอที่มาพร้อมกันได้ยาก
+- หากเปิดโต๊ะจัดส่งค้างไว้ ป้ายโหมดจัดเก็บข้อมูลอาจยังแสดงโหมดเดิมหลังจากระบบเปลี่ยนมาอ่านจากหน่วยความจำ อินสแตนซ์ที่ได้รับผลกระทบยังคงปฏิเสธการเขียน
+- API รับงบที่มากกว่า ฿2,147,483,647 ได้ แต่ PostgreSQL ใช้จำนวนเต็มแบบมีเครื่องหมาย 32 บิตสำหรับงบจอง และจะปฏิเสธค่าที่สูงกว่านี้
 
-- Each model attempt has a nine-second deadline. The initial database read can push the full Interpret request beyond the 25-second target. Per-model logs omit the HTTP request ID, which makes it difficult to match attempts to simultaneous requests.
-- A continuously focused desk can keep displaying the previous storage mode after an operational read falls back to memory. The store still refuses writes on the affected instance.
-- The API accepts budgets above ฿2,147,483,647. PostgreSQL uses a signed 32-bit integer for booking budgets and rejects larger values.
+<a name="not-built"></a>
 
-### Not built
+### ส่วนที่ยังไม่ได้พัฒนา
 
-Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The [build evidence page](https://orderrescue.vercel.app/built-with-codex) links the task timeline, planner prompt, pull requests and tests.
+โครงการยังไม่มีพื้นที่เดโมแยกต่อผู้ชม ตัวแก้ไขสต็อกหรือออเดอร์ทั่วไป การวางแผนหลาย SKU ร่วมกัน ระบบแจ้งลูกค้า หรือการเชื่อมแชตภายนอก เหตุการณ์สาธิตที่ตั้งไว้ล่วงหน้าสามารถเปลี่ยนเวลาพร้อมหยิบได้ [หน้าวิธีสร้างด้วย Codex](https://orderrescue.vercel.app/built-with-codex) มีลำดับงาน พรอมป์ของตัววางแผน pull request และผลการทดสอบ
 
-### Accessibility evidence
+<a name="accessibility-evidence"></a>
 
-Local axe scans found zero WCAG 2.0/2.1 A/AA violations on the planned desk and confirmation dialog at 1280×720 and 390×844. T20 also checked the demo guide, data page and not-found page at three widths, and reached the receipt by keyboard under reduced motion. The dedicated T17b audit is pending at this revision. [UI verification and screenshots](docs/codex-log/T20.md) · [Local scans](docs/codex-log/T23.md)
+### หลักฐานด้านการเข้าถึง
 
-## How we used Codex
+การสแกนด้วย axe บนเครื่องที่ 1280×720 และ 390×844 ไม่พบการละเมิด WCAG 2.0/2.1 ระดับ A/AA บนโต๊ะที่มีแผนแล้วและในกล่องยืนยัน งาน T20 ยังตรวจคู่มือเดโม หน้าที่มาข้อมูล และหน้าไม่พบข้อมูลที่ 3 ขนาดจอ และใช้คีย์บอร์ดไปถึงใบจองได้เมื่อเปิดโหมดลดการเคลื่อนไหว ณ รุ่นที่บันทึกนี้ งานตรวจการเข้าถึงเฉพาะทาง T17b ยังรอดำเนินการ [ภาพและผลตรวจหน้าจอ](docs/codex-log/T20.md) · [ผลสแกนบนเครื่อง](docs/codex-log/T23.md)
 
-The team prepared specifications and task prompts before the event. During the build, Codex agents worked on scoped branches, wrote execution plans, exercised acceptance checks and recorded command results. Pull requests preserve the integration history. [Team ledger](docs/CODEX_LOG.md) · [Execution plans](.agent/plans/) · [Task evidence](docs/codex-log/) · [Pull requests](https://github.com/NamiNaone99/orderrescue/pulls?q=is%3Apr)
+<a name="how-we-used-codex"></a>
 
-## Third-party data and software
+## ทีมใช้ Codex อย่างไร
 
-- Chen, D. (2012). *Online Retail II* [Dataset]. UCI Machine Learning Repository. CC BY 4.0. The derived slice is filtered, date-shifted and augmented with simulated fields. [Dataset DOI](https://doi.org/10.24432/C5CG6D) · [CC BY 4.0 licence](https://creativecommons.org/licenses/by/4.0/)
-- The app serves Sarabun locally for Thai and Latin in four weights. Copyright 2018 The Sarabun Project Authors. SIL Open Font License 1.1. [Bundled font licence](app/fonts/OFL.txt)
-- The application uses Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, Zod and the OpenAI and Supabase SDKs. Third-party packages retain their licences. The project code uses the [MIT licence](LICENSE).
+ทีมเตรียมข้อกำหนดและพรอมป์ของแต่ละงานก่อนวันแข่งขัน ระหว่างพัฒนา Codex ทำงานแยกสาขาตามขอบเขต เขียนแผนการทำงาน ทดสอบตามเกณฑ์รับงาน และบันทึกผลคำสั่ง ประวัติ pull request แสดงว่าแต่ละงานรวมเข้าด้วยกันเมื่อใด [บันทึกงานของทีม](docs/CODEX_LOG.md) · [แผนการทำงาน](.agent/plans/) · [หลักฐานของแต่ละงาน](docs/codex-log/) · [Pull request](https://github.com/NamiNaone99/orderrescue/pulls?q=is%3Apr)
 
-## Declarations
+<a name="third-party-data-and-software"></a>
 
-- Built on site at the Sea x OpenAI Regional Codex Hackathon Thailand on 21 Nov 2026. All application code in this repository was written from 10:25 that day, mostly with OpenAI Codex.
-- The files in docs/ listed in the commit "docs: specifications and task prompts written before the event" are planning documents written before the event with AI assistance. They contain no application code.
-- A rehearsal prototype of the same idea exists in a separate repository (https://github.com/poomphasindev/OrderRescue_OpenAI). No file, function or test from it was copied into this repository.
-- Third-party scaffolders and packages (create-next-app, shadcn, npm dependencies) were run during the event.
+## ข้อมูลและซอฟต์แวร์ของบุคคลที่สาม
+
+- Chen, D. (2012). *Online Retail II* [Dataset]. UCI Machine Learning Repository. สัญญาอนุญาต CC BY 4.0 ทีมกรองข้อมูล เลื่อนวันที่ และเพิ่มฟิลด์จำลองในชุดข้อมูลที่ใช้กับแอป [DOI ของชุดข้อมูล](https://doi.org/10.24432/C5CG6D) · [สัญญาอนุญาต CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- แอปให้บริการฟอนต์ Sarabun จากไฟล์ภายในโปรเจกต์ รองรับภาษาไทยและอักษรละติน 4 น้ำหนัก ลิขสิทธิ์ปี 2018 ของ The Sarabun Project Authors ภายใต้ SIL Open Font License 1.1 [สัญญาอนุญาตฟอนต์](app/fonts/OFL.txt)
+- แอปใช้ Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, Zod รวมถึง SDK ของ OpenAI และ Supabase แพ็กเกจภายนอกยังอยู่ภายใต้สัญญาอนุญาตของผู้เผยแพร่ โค้ดของโครงการใช้ [สัญญาอนุญาต MIT](LICENSE)
+
+<a name="declarations"></a>
+
+## คำชี้แจงของทีม
+
+- ทีมพัฒนาแอป ณ งาน Sea x OpenAI Regional Codex Hackathon Thailand เมื่อ 21 พฤศจิกายน 2026 โค้ดแอปพลิเคชันทั้งหมดในคลังนี้เขียนขึ้นตั้งแต่เวลา 10:25 น. ของวันนั้น โดยใช้ OpenAI Codex เป็นหลัก
+- ไฟล์ใน `docs/` ที่ระบุในคอมมิต `docs: specifications and task prompts written before the event` เป็นเอกสารวางแผนที่เขียนก่อนงานโดยมี AI ช่วย และไม่มีโค้ดแอปพลิเคชัน
+- ทีมเคยทำต้นแบบแนวคิดเดียวกันไว้ใน [คลังแยกสำหรับซ้อม](https://github.com/poomphasindev/OrderRescue_OpenAI) ไม่มีการคัดลอกไฟล์ ฟังก์ชัน หรือการทดสอบจากต้นแบบมาไว้ในคลังนี้
+- ทีมรันเครื่องมือสร้างโปรเจกต์และติดตั้งแพ็กเกจของบุคคลที่สามระหว่างงาน ได้แก่ create-next-app, shadcn และแพ็กเกจจาก npm
