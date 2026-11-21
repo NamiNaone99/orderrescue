@@ -1,0 +1,66 @@
+.provenance-page {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  padding: 1.6rem 1.5rem 3rem;
+  display: grid;
+  gap: 1rem;
+  color: var(--foreground);
+}
+.provenance-page h1 { font-size: 1.65rem; line-height: 1.35; font-weight: 650; }
+.provenance-page h2, .provenance-page h3 { font-size: 1.125rem; line-height: 1.5; font-weight: 650; }
+.provenance-page h2 { display: flex; align-items: flex-start; gap: .65rem; margin-bottom: 1rem; }
+.provenance-page h2 > svg { color: var(--primary); margin-top: .22rem; flex: none; }
+.provenance-en { display: block; font-size: .875rem; line-height: 1.55; font-weight: 400; color: var(--muted-foreground); }
+.provenance-page h2 > .provenance-en { align-self: baseline; }
+.provenance-intro { padding-block: .25rem .3rem; }
+.provenance-intro h1 .provenance-en { margin-top: .2rem; }
+.provenance-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1.35rem; }
+.provenance-summary > div, .provenance-panel, .provenance-source { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+.provenance-summary > div { padding: 1rem 1.15rem; }
+.provenance-summary p { margin-top: .65rem; }
+.provenance-summary p .provenance-en, .provenance-panel p .provenance-en { margin-top: .2rem; }
+.provenance-chip { width: fit-content; max-width: 100%; display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .13rem .48rem; border-radius: .35rem; font-size: .875rem; font-weight: 600; line-height: 1.55; color: #1d4b73; background: #e8f2fa; }
+.provenance-chip[data-kind="simulated"] { color: #7b4a14; background: #fff1da; }
+.provenance-chip[data-kind="synthetic"] { color: #654486; background: #f1eafa; }
+.provenance-chip [lang="en"] { font-weight: 500; }
+.provenance-panel, .provenance-source { padding: 1.25rem; box-shadow: var(--shadow); min-width: 0; }
+.provenance-source { border-top: 3px solid var(--primary); }
+.provenance-sourceTitle { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem 1.2rem; }
+.provenance-sourceTitle strong { font-size: 1.45rem; line-height: 1.4; }
+.provenance-sourceTitle a { display: inline-flex; min-height: 44px; align-items: center; gap: .2rem; color: var(--primary); text-decoration: underline; text-underline-offset: .2rem; }
+.provenance-stats, .provenance-facts { display: flex; flex-wrap: wrap; gap: 1rem 2rem; }
+.provenance-stats { margin: .8rem 0 1rem; padding-block: .8rem; border-block: 1px solid var(--border); }
+.provenance-stats > div { display: flex; flex-direction: column-reverse; flex: 1 1 7rem; }
+.provenance-stats dd { font-size: 1.65rem; line-height: 1.4; font-weight: 650; color: var(--ink-green); }
+.provenance-stats dt, .provenance-facts dt { font-size: .875rem; font-weight: 550; }
+.provenance-facts dd { margin-top: .2rem; font-weight: 550; }
+.provenance-citation { color: var(--muted-foreground); overflow-wrap: anywhere; font-size: .875rem; margin-top: .85rem; }
+.provenance-notice { background: var(--muted); border-radius: .45rem; padding: .65rem .85rem; margin-top: .9rem; }
+.provenance-page table { width: 100%; border-collapse: collapse; font-size: .9375rem; }
+.provenance-page th, .provenance-page td { text-align: left; padding: .7rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.provenance-page th { font-weight: 550; }
+.provenance-page thead { background: var(--muted); }
+.provenance-page code { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; font-size: .875rem; }
+.provenance-fields th:first-child { width: 23%; }
+.provenance-fields td:nth-child(2) { width: 24%; }
+.provenance-changes { display: grid; gap: .7rem; list-style: disc; margin: 0; padding-left: 1.3rem; }
+.provenance-changes li::marker { color: var(--primary); }
+.provenance-panel > p + p { margin-top: .5rem; }
+.provenance-eval { margin-top: 1rem; }
+.provenance-eval .provenance-facts { margin-block: .8rem 1rem; }
+.provenance-scores td { font-variant-numeric: tabular-nums; font-weight: 600; }
+@media (max-width: 767px) {
+  .provenance-page { padding: 1rem .85rem 2rem; }
+  .provenance-summary { grid-template-columns: 1fr; gap: .55rem; margin-top: .8rem; }
+  .provenance-summary > div { padding: .85rem; }
+  .provenance-panel, .provenance-source { padding: 1rem; }
+  .provenance-page h2 { display: block; }
+  .provenance-page h2 > svg { display: none; }
+  .provenance-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .provenance-facts { gap: .75rem 1.3rem; }
+  .provenance-fields, .provenance-fields tbody, .provenance-fields tr, .provenance-fields td, .provenance-fields th { display: block; }
+  .provenance-fields thead { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .provenance-fields tr { padding: .75rem 0; border-bottom: 1px solid var(--border); }
+  .provenance-fields tbody :is(th, td) { padding: .15rem 0; border: none; width: 100%; }
+  .provenance-fields th:first-child, .provenance-fields td:nth-child(2) { width: 100%; }
+}
