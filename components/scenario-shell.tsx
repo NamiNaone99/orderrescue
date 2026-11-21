@@ -3,6 +3,7 @@
 import { createContext, Suspense, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Scenario } from "@/lib/domain/types";
+import { findDemoCase } from "@/lib/client/demo-cases";
 import { Header } from "./header";
 import { ServiceHealthProvider } from "./mode-badges";
 
@@ -27,7 +28,7 @@ function Shell({ scenarios, scenario, query, children }: ShellProps & { scenario
   const [revision, setRevision] = useState(0);
   function href(path: string, id = scenario.id) {
     const params = new URLSearchParams(query);
-    for (const key of ["tour", "tourRun", "notes", "receipt"]) params.delete(key);
+    for (const key of ["tour", "tourRun", "notes", "receipt", "case"]) params.delete(key);
     params.set("scenario", id);
     return path + "?" + params.toString();
   }
@@ -55,7 +56,8 @@ export function ScenarioShell({ scenarios, children }: ShellProps) {
   const [query, setQuery] = useState("");
   const params = new URLSearchParams(query);
   const pathname = usePathname();
-  const id = pathname === "/" && params.get("tour") === "1" ? "hero" : params.get("scenario") ?? "hero";
+  const selectedCase = pathname === "/" ? findDemoCase(params.get("case")) : undefined;
+  const id = pathname === "/" && params.get("tour") === "1" ? "hero" : selectedCase?.scenario ?? params.get("scenario") ?? "hero";
   const scenario = scenarios.find(item => item.id === id) ?? scenarios.find(item => item.id === "hero") ?? scenarios[0];
   return <ServiceHealthProvider>
     <Suspense fallback={null}><QueryObserver onChange={setQuery} /></Suspense>
