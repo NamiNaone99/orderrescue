@@ -6,10 +6,10 @@ import { formatBangkokTime } from "@/lib/domain/time";
 
 export const humanReason = { NO_STOCK: copy.noStock, NO_ON_TIME_SOURCE: copy.noSource, OVER_BUDGET: copy.overBudget, NOT_SELECTED: copy.notSelected };
 
-export function PlanCompare({ plan, loading, booked }: { plan: PlanResponse | null; loading: boolean; booked: boolean }) {
+export function PlanCompare({ plan, loading, booked, stale }: { plan: PlanResponse | null; loading: boolean; booked: boolean; stale: boolean }) {
   const gain = plan && plan.joint.on_time - plan.first_come.on_time;
   const extra = plan && plan.joint.extra_cost_thb - plan.first_come.extra_cost_thb;
-  return <section className="desk-panel plan-panel" aria-labelledby="compare-heading" aria-busy={loading}>
+  return <section className={"desk-panel plan-panel" + (stale ? " stale-plan" : "")} aria-labelledby="compare-heading" aria-busy={loading}>
     <div className="panel-heading"><span className="panel-icon"><GitCompareArrows /></span>
       <div><h2 id="compare-heading">{copy.compare.th}</h2><span lang="en">{copy.compare.en}</span></div>
       {loading && <LoaderCircle className="spin" aria-label={copy.planning.th} />}</div>
