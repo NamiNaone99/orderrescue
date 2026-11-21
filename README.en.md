@@ -114,7 +114,7 @@ For a manual run of **Deployed smoke** in GitHub Actions, use the canonical prod
 
 Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
 
-On the T21 deployment at `8411f1e`, the manually dispatched GitHub smoke job passed in 55 seconds and the subsequent Windows run passed four of four checks in 22.2 seconds. The hero returned to its initial state. The workflow listens for `vercel.deployment.success`. An automatic dispatch had yet to be observed at verification. [Production results](docs/codex-log/T21.md#hosted-acceptance) · [Manual Actions run](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
+On the T21 deployment at `8411f1e`, the manually dispatched GitHub smoke job passed in 55 seconds and the subsequent Windows run passed four of four checks in 22.2 seconds. The hero returned to its initial state. The workflow listens for `vercel.deployment.success`. After the integration was enabled, GitHub received a real `repository_dispatch`. That smoke run received HTTP 302, so the automatic smoke had yet to pass. [Production results](docs/codex-log/T21.md#hosted-acceptance) · [Manual Actions run](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
 
 The team records its deployment sign-off in `run by the team: <to fill>` and its submission URL in `Live: <to fill>`.
 
