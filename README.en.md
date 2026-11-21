@@ -94,7 +94,7 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 
 Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
 
-Submission URL for the team to confirm: `Live: <to fill>`.
+The team confirms its submission URL in `Live: <to fill>`.
 
 ## Limitations and scope
 
