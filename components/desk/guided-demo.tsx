@@ -28,8 +28,9 @@ function deskError(code: string) {
   return copy.requestFailed;
 }
 
-export function GuidedDemo({ desk, query, host, degraded, restored }: {
+export function GuidedDemo({ desk, query, host, degraded, restored, onChooseCase }: {
   desk: Desk; query: string; host: HTMLElement | null; degraded: boolean; restored?: SavedReceipt;
+  onChooseCase: () => void;
 }) {
   const { s } = desk;
   const params = new URLSearchParams(query);
@@ -53,8 +54,10 @@ export function GuidedDemo({ desk, query, host, degraded, restored }: {
   const { step } = current;
   const screen = tourScreen(step, desk, facts, receipt, finished);
   const actionKey = step + ":" + (screen.action ?? "") + ":" + s.budget;
-  function leave() {
+  function leave(focusCase = false) {
+    if (focusCase) onChooseCase();
     editTourUrl(p => { for (const key of ["tour", "tourRun", "notes"]) p.delete(key); });
+    if (focusCase) return;
     requestAnimationFrame(() => {
       const target = document.querySelector<HTMLElement>(".confirm-popup .dialog-actions button:enabled") ?? document.getElementById("start-guided-demo");
       target?.focus();
@@ -159,6 +162,6 @@ export function GuidedDemo({ desk, query, host, degraded, restored }: {
   return <TourOverlay step={step} target={screen.target} body={screen.body} error={error} host={s.confirmation ? host : null}
     busy={busy} phase={phase} notes={params.get("notes") === "1"} since={since} finished={finished} receipt={step === 8 && !!receipt}
     backDisabled={step === 1 || !!s.confirmation || !!restored && !s.plan} action={screen.action}
-    back={back} next={() => forward(false)} act={() => forward(true)} exit={leave} retry={retry}
+    back={back} next={() => forward(false)} act={() => forward(true)} exit={() => leave()} retry={retry} chooseCase={() => leave(true)}
     restart={() => { void restart(); }} resetFinish={() => { void restart(true); }} />;
 }
