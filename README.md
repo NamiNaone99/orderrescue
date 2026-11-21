@@ -4,6 +4,8 @@ OrderRescue helps Thai wholesalers replan dispatch when a warehouse reports a pi
 
 work in progress, started 21 Nov 2026 10:25
 
+[Judging brief](docs/JUDGING_EVIDENCE.md) · [Business analysis](BUSINESS_ANALYSIS_SUMMARY.md) · [Codex build log](docs/CODEX_LOG.md)
+
 ## Declarations
 
 - Built on site at the Sea x OpenAI Regional Codex Hackathon Thailand on 21 Nov 2026. All application code in this repository was written from 10:25 that day, mostly with OpenAI Codex.
