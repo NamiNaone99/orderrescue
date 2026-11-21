@@ -31,7 +31,7 @@ export function ConfirmDialog({ input, plan, busy, error, cancel, book, replan }
   const refused = !!error && !["INTERNAL", "RATE_LIMITED", "STORAGE_UNAVAILABLE"].includes(error.code);
   return <Dialog open={!!input} onOpenChange={open => { if (!open && !busy) cancel(); }}>
     <DialogContent showCloseButton={false} className="confirm-popup" aria-busy={busy}
-      finalFocus={() => document.getElementById("desk-receipt") ?? document.querySelector<HTMLButtonElement>(".budget-bottom button")}>
+      finalFocus={() => document.getElementById("desk-receipt") ?? document.getElementById("stale-replan") ?? document.querySelector<HTMLButtonElement>(".budget-bottom button")}>
       <DialogHeader><div className="panel-icon"><TicketCheck /></div><DialogTitle className="dialog-title">{copy.confirmTitle.th}</DialogTitle>
         <DialogDescription>{copy.exact.th}</DialogDescription></DialogHeader>
       {input && plan && <><BookingLines lines={input.lines} /><div className="total-line"><span>{copy.total.th}</span><b>{formatThb(plan.joint.extra_cost_thb)}</b></div>

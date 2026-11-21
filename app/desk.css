@@ -4,6 +4,20 @@
 .message-column > .desk-panel { grid-column: 1; }
 .dispatch .plan-panel { grid-column: 5 / -1; grid-row: 1; }
 .dispatch .stock-panel { grid-row: 2; }
+.stock-column { grid-column: 1 / span 4; grid-row: 2; min-width: 0; }
+.demo-events { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.demo-events h3 { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.demo-events button { margin-top: 6px; text-align: start; }
+.demo-events button:disabled { color: var(--muted-foreground); cursor: default; opacity: 1; }
+.stale-banner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 18px; margin-bottom: 16px;
+  background: var(--warning-bg); color: #6a410c; border: 1px solid #cf9f59; border-radius: 12px; }
+.stale-banner > div { flex: 1; }
+.stale-banner h2 { font-weight: 650; }
+.stale-banner ul { padding: 0; margin: 3px 0 0; list-style: none; }
+.stale-banner .outline-action { color: #644008; border-color: #97713b; }
+.stale-plan, .stale-plan .strategy { background: #f1f3f4; border-color: #c6cdd0; }
+.stale-plan .strategy, .stale-plan .comparison-notes, .stale-plan .orders { filter: grayscale(1); color: #475569; }
+@media (min-width: 768px) and (max-width: 1023px) { .stock-column { grid-column: 1 / span 5; } }
 .budget-panel { grid-column: 5 / -1; grid-row: 2; }
 .receipt-panel { grid-column: 1 / -1; }
 .dispatch h2, .confirm-popup .dialog-title { font-size: 18px; font-weight: 650; }
