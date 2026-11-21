@@ -78,8 +78,12 @@ export function validBudget(value: string) {
   return /^\d+$/.test(value) && Number.isSafeInteger(Number(value));
 }
 
-export function useDesk(scenario: ScenarioId) {
-  const [s, dispatch] = useReducer(reducer, initial);
+export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scenario"], "sample_messages" | "default_budget_thb">) {
+  const [s, dispatch] = useReducer(reducer, defaults, seed => ({
+    ...initial, message: seed.sample_messages[0]?.text ?? "", budget: String(seed.default_budget_thb),
+  }));
+  const initialRead = useRef<Promise<boolean> | null>(null);
+  const queuedAnalysis = useRef(false);
   const pending = useRef<AbortController | null>(null);
   const lastEvent = useRef<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -95,14 +99,23 @@ export function useDesk(scenario: ScenarioId) {
       apply({ type: "failed", op, error: err instanceof DeskApiError ? err : new DeskApiError("INTERNAL", null, 0) });
     }
   }, [cancel]);
-  const load = useCallback((reset: boolean) => run(reset ? "reset" : "load", async (signal, apply) => {
-    if (reset && scenario === "hero") await api.reset({ scenario });
-    const catalog = await api.state({ scenario }, signal);
-    const sku = catalog.scenario.default_sku_id;
-    const stock = catalog.skus.some(item => item.id === sku) ? catalog : await api.state({ scenario, sku }, signal);
-    apply({ type: "loaded", stock, catalog: stock === catalog ? catalog.skus : [...catalog.skus, ...stock.skus] });
-  }), [run, scenario]);
-  useEffect(() => { void load(false); return cancel; }, [load, cancel]);
+  const load = useCallback(async (reset: boolean) => {
+    let ready = false;
+    await run(reset ? "reset" : "load", async (signal, apply) => {
+      if (reset && scenario === "hero") await api.reset({ scenario });
+      const catalog = await api.state({ scenario }, signal);
+      const sku = catalog.scenario.default_sku_id;
+      const stock = catalog.skus.some(item => item.id === sku) ? catalog : await api.state({ scenario, sku }, signal);
+      apply({ type: "loaded", stock, catalog: stock === catalog ? catalog.skus : [...catalog.skus, ...stock.skus] });
+      ready = !signal.aborted;
+    });
+    return ready;
+  }, [run, scenario]);
+  const readInitial = useCallback(() => initialRead.current ??= load(false), [load]);
+  useEffect(() => {
+    void readInitial();
+    return () => { cancel(); initialRead.current = null; };
+  }, [readInitial, cancel]);
 
   useEffect(() => {
     const plan = s.plan;
@@ -151,8 +164,16 @@ export function useDesk(scenario: ScenarioId) {
     dispatch({ type: "manual", incident: entered });
     return makePlan(entered, entered.sku_id, s.budget);
   }
-  function analyse() {
-    if (s.stale) return;
+  async function analyse() {
+    if (s.stale || queuedAnalysis.current) return;
+    if (!s.stock) {
+      queuedAnalysis.current = true;
+      const read = readInitial();
+      dispatch({ type: "begin", op: "interpret" });
+      const ready = await read;
+      queuedAnalysis.current = false;
+      if (!ready || pending.current?.signal.aborted) return;
+    }
     return run("interpret", async (signal, apply) => {
       const answer = await api.interpret({ scenario, message: s.message }, signal);
       const ids = answer.incident?.sku_ids ?? [];

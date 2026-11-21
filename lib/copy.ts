@@ -221,3 +221,26 @@ export const dataCopy = {
     revision: words("รุ่นของแถวสต็อก เริ่มจากสถานะจำลองและเพิ่มเมื่อมีการเปลี่ยนแปลง", "Stock version starts at the simulated initial state and increments when the row changes."),
   },
 };
+
+export const polishCopy = {
+  guide: words("วิธีใช้เดโม", "Demo guide"),
+  guideIntro: words("ลองจัดส่งน้ำดื่มจากคลังสำรองด้วยสถานการณ์ตัวอย่างและงบ ฿100", "Use the synthetic warehouse scenario with a ฿100 budget."),
+  guideSteps: [
+    { title: words("วิเคราะห์ข้อความจากคลัง", "Analyse the warehouse message"), body: words("เลือกสถานการณ์ตัวอย่าง ใช้ข้อความ “คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้” แล้วกดวิเคราะห์ข้อความ", "Choose the synthetic scenario and analyse the prefilled Thai sample.") },
+    { title: words("ตรวจเหตุการณ์ที่อ่านได้", "Check the incident"), body: words("ดูคลัง A สินค้า SKU-X และช่วง 13:00–18:00 ตรวจคำที่ไฮไลต์เทียบกับข้อความต้นทาง", "Check warehouse A, SKU-X and 13:00–18:00 against the highlighted evidence.") },
+    { title: words("เทียบจำนวนที่ส่งทัน", "Compare the plans"), body: words("มาก่อนได้ก่อนส่งทัน 1/2 ออเดอร์ ใช้ ฿32 ส่วนแผนจัดร่วมกันส่งทัน 2/2 ใช้ ฿88 โดยส่ง #101 จากคลัง B และ #102 จากคลัง C", "First-come saves 1/2 for ฿32. The joint plan saves 2/2 for ฿88 with #101 from B and #102 from C.") },
+    { title: words("ยืนยันและเก็บใบจอง", "Confirm and save the receipt"), body: words("กดตรวจสอบและยืนยันจอง ตรวจคลัง จำนวน และค่าใช้จ่าย แล้วกดยืนยันจอง คัดลอกใบยืนยันหรือดาวน์โหลด CSV ได้", "Review the rows and cost, confirm, and copy the receipt or download its CSV.") },
+  ],
+  guideChange: words("ลองทดสอบเมื่อคลังล่าช้า", "Try a delayed warehouse"),
+  guideChangeBody: words("ก่อนยืนยัน เลือกเหตุการณ์ให้คลัง B พร้อมช้าเป็น 14:30 แล้วคำนวณจากสต็อกล่าสุด แผนใหม่ส่ง #102 จากคลัง B ได้ 1/2 ออเดอร์ ใช้ ฿32 ส่วน #101 ต้องให้คนตัดสินใจ", "Before booking, slip B to 14:30 and explicitly replan. #102 ships from B for ฿32 and #101 needs a dispatcher."),
+  closeGuide: words("ปิดวิธีใช้เดโม", "Close demo guide"),
+  adjustBudget: words("ปรับงบเพิ่ม", "Adjust budget"),
+  savedMore: words("ช่วยได้เพิ่ม +{n} ออเดอร์", "Saves {n} additional orders"),
+  emptyPlan: words("วิเคราะห์ข้อความเพื่อดูแผนนี้", "Analyse a message to see this plan"),
+  late: words("ไม่ทัน", "Late"),
+  waiting: words("รอคนตัดสินใจ", "Needs a dispatcher"),
+  edit: words("แก้ไข", "Edit"),
+  latestStock: words("คำนวณจากสต็อกล่าสุด", "Replan with latest stock"),
+  staleReason: words("วางแผนใหม่ก่อนยืนยันการจอง", "Replan before confirming this reservation."),
+  download: words("ดาวน์โหลด CSV", "Download CSV"),
+} as const;

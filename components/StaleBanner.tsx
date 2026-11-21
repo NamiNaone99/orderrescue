@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { RefreshCw, TriangleAlert } from "lucide-react";
-import { copy } from "@/lib/copy";
+import { copy, polishCopy } from "@/lib/copy";
 import type { DeskApiError } from "@/lib/client/api";
 import type { PlanChange } from "@/lib/client/plan-changes";
 import { formatBangkokTime } from "@/lib/domain/time";
@@ -21,13 +21,19 @@ export function StaleBanner({ changes, refusal, pending, replan }: {
   changes: PlanChange[]; refusal?: DeskApiError; pending: boolean; replan: () => void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
-  useEffect(() => { button.current?.focus(); }, []);
+  useEffect(() => {
+    if (document.querySelector(".guide-popup")) return;
+    button.current?.focus({ preventScroll: true });
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    button.current?.closest("section")?.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "instant" });
+  }, []);
   const reason = refusal?.code === "IDEMPOTENCY_CONFLICT" ? copy.keyConflict : refusal?.code === "ORDER_ALREADY_RESERVED" ? copy.orderReserved : copy.stockChanged;
   return <section className="stale-banner" aria-labelledby="stale-heading"><TriangleAlert aria-hidden />
     <div><h2 id="stale-heading">{refusal ? copy.bookingRefused.th : copy.stockChanged.th}</h2>
       {refusal && <p>{reason.th}</p>}
+      <p className="stale-guidance">{polishCopy.staleReason.th}</p>
       {changes.length > 0 && <ul>{changes.map(change => <li key={change.kind === "order" ? "#" + change.id : change.warehouse + "/" + change.sku}>{describe(change)}</li>)}</ul>}
       {refusal?.requestId && <small>{copy.requestId.th} {refusal.requestId.slice(0,8)}</small>}</div>
-    <button id="stale-replan" ref={button} type="button" className="outline-action" disabled={pending} onClick={replan}><RefreshCw />{copy.replan.th}</button>
+    <button id="stale-replan" ref={button} type="button" className="primary-action" aria-label={copy.replan.th + " · " + polishCopy.latestStock.th} disabled={pending} onClick={replan}><RefreshCw aria-hidden />{polishCopy.latestStock.th}<span className="sr-only"> · {copy.replan.th}</span></button>
   </section>;
 }
