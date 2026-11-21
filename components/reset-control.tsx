@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { copy, bilingual } from "@/lib/copy";
-import { demoResetResponseSchema, errorResponseSchema } from "@/lib/domain/contracts";
+import { api, DeskApiError } from "@/lib/client/api";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
@@ -25,23 +25,14 @@ export function ResetControl({ scenario, onReset }: { scenario: ShellScenario; o
     setPending(true);
     setNotice("");
     try {
-      const headers: Record<string, string> = { "content-type": "application/json" };
-      if (scenario.id !== "hero") headers["x-demo-token"] = token;
-      const response = await fetch("/api/demo/reset", {
-        method: "POST", headers, body: JSON.stringify({ scenario: scenario.id }), signal: AbortSignal.timeout(10_000),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok || !demoResetResponseSchema.safeParse(data).success) {
-        const result = errorResponseSchema.safeParse(data);
-        const label = response.status === 401 ? copy.unauthorized : response.status === 429 ? copy.limited : copy.resetFailed;
-        setNotice(label.th + (result.success ? " · " + copy.requestId.th + " " + result.data.error.request_id : ""));
-        return;
-      }
+      await api.reset({ scenario: scenario.id }, scenario.id === "hero" ? undefined : token);
       changeOpen(false);
       setNotice(copy.resetDone.th);
       onReset();
-    } catch {
-      setNotice(copy.resetFailed.th);
+    } catch (error) {
+      const issue = error instanceof DeskApiError ? error : null;
+      const label = issue?.code === "UNAUTHORIZED" ? copy.unauthorized : issue?.code === "RATE_LIMITED" ? copy.limited : copy.resetFailed;
+      setNotice(label.th + (issue?.requestId ? " · " + copy.requestId.th + " " + issue.requestId : ""));
     } finally {
       setPending(false);
     }

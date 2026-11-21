@@ -5,6 +5,7 @@ import { scenarioRegistry } from "@/lib/scenarios";
 import { ScenarioShell } from "@/components/scenario-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
+import "./desk.css";
 
 const thai = Noto_Sans_Thai({ subsets: ["thai", "latin"], display: "swap", variable: "--font-sans" });
 const title = "OrderRescue · " + copy.desk.th;
