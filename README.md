@@ -82,7 +82,7 @@ pnpm dev
 | `pnpm test:db` กับ Supabase บนโฮสต์ | ทีมรันใน T15 ผ่าน 19/19 กรณี ภายใน 34.50 วินาที สำหรับรุ่นนี้ให้ทีมบันทึกผลที่ช่อง `run by the team: <to fill>` [บันทึกผลบนโฮสต์](docs/codex-log/T15.md) |
 | `pnpm eval --live --split heldout` กับชุดข้อความที่คนเขียน | `run by the team: <to fill>` |
 
-เมื่อรวม CHAT กับ INSIGHTS แล้ว ชุดทดสอบบนเครื่องผ่าน 341 กรณี ข้าม 22 กรณีที่ต้องเปิดใช้กับฐานข้อมูลบนโฮสต์ ผ่าน 51 กรณีในแต่ละเขตเวลา (UTC และ Asia/Bangkok) และผ่านทั้ง 29 กรณีใน Chromium ใน 3.6 นาที การทดสอบตัวเชื่อม Supabase กับ PostgreSQL บนเครื่องผ่านทั้ง 22 กรณี การตรวจฐานข้อมูลบนโฮสต์ 19 กรณีในตารางเป็นผลเดิมจาก T15 [ผลตรวจ CHAT และ INSIGHTS](docs/codex-log/CHAT.md)
+เมื่อรวม CHAT กับ INSIGHTS แล้ว ชุดทดสอบบนเครื่องผ่าน 341 กรณี ข้าม 22 กรณีที่ต้องเปิดใช้กับฐานข้อมูลบนโฮสต์ ผ่าน 51 กรณีในแต่ละเขตเวลา (UTC และ Asia/Bangkok) และผ่านทั้ง 29 กรณีใน Chromium ใน 3.6 นาที การทดสอบตัวเชื่อม Supabase กับ PostgreSQL บนเครื่องผ่านทั้ง 22 กรณี การตรวจฐานข้อมูลบนโฮสต์ 19 กรณีในตารางเป็นผลเดิมจาก T15 [ผลตรวจ CHAT และ INSIGHTS บนเครื่อง](docs/codex-log/CHAT.md) · [ผลยืนยันแชตและใบจองบนระบบจริง](docs/codex-log/CHAT.md#post-merge-production-verification)
 
 <a name="data-and-evaluation"></a>
 

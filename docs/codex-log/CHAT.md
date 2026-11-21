@@ -39,3 +39,16 @@ The coordinator exercised the local memory-backed interpret route with live Open
 The coordinator's repeat produced three HTTP 200 proposals on the first `gpt-6-luna` attempt, each with zero validation issues. Delay returned B/SKU-X at 14:30 in 2,589 ms, found stock returned C/SKU-X +4 in 2,481 ms, and resumed returned A/SKU-X at 13:30 in 2,334 ms. The calls were read-only and used synthetic hero messages.
 
 The coordinator owns hosted migration application, merge and production Playwright verification on the synthetic hero. The new 22-case hosted contract is opt-in and has not been run. T15's historical hosted result covers its original 19 cases.
+
+## Post-merge production verification
+
+After [PR #27](https://github.com/NamiNaone99/orderrescue/pull/27) merged at `7e5b1cc`, the coordinator verified the synthetic hero on the live desk. Health reported Supabase storage and OpenAI interpretation. The hosted `warehouse_reports` migration was recorded as `20261121080720`. Its table had row-level security and zero reports at migration. The report reads and RPC were restricted to the service role among the API roles. The original and new snapshots matched for all three scenarios.
+
+| Operator action | Observed result |
+| --- | --- |
+| Book the ordinary joint hero plan | First-come served 1/2 for ฿32. Joint served 2/2 for ฿88. The reservation returned HTTP 201 with receipt `2c7e897a-72c9-456e-8ec2-0fbd30349f88` for #101/B ×8 and #102/C ×8. |
+| Report **รถสาขา B ออกได้บ่ายสองครึ่ง** | The preview showed 14:30 and stock stayed unchanged until confirmation. The confirmed report returned HTTP 200 and disabled booking of the stale plan. Replanning served 1/2 for ฿32. |
+| Report four additional SKU-X units at C | Confirmation changed C's quantity from 8 to 12. Replanning served 2/2 for ฿88. |
+| Report that A resumed picking at 13:30 | Replanning served 2/2 for ฿0. The #101 explanation displayed `คลัง A · เลือกคลังนี้ · พร้อม 13:30 · ฿0`; the frontier showed `฿0 · 2/2`. |
+
+All three reports used `openai:gpt-6-luna`. Each preview left stock unchanged, each confirmation returned HTTP 200, and the desk blocked booking of the stale plan. Cleanup restored the hero's open orders and initial stock revisions, with zero reservations remaining.

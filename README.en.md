@@ -74,7 +74,7 @@ Local checks used Windows, Node 22.20.0, memory storage and offline interpretati
 | `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
 | `pnpm eval --live --split heldout` with the human corpus | `run by the team: <to fill>` |
 
-On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 opt-in hosted checks were skipped, 51 domain checks passed in each time zone (UTC and Asia/Bangkok), and all 29 Chromium cases passed in 3.6 minutes. The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined CHAT and INSIGHTS checks](docs/codex-log/CHAT.md)
+On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 opt-in hosted checks were skipped, 51 domain checks passed in each time zone (UTC and Asia/Bangkok), and all 29 Chromium cases passed in 3.6 minutes. The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined local CHAT and INSIGHTS checks](docs/codex-log/CHAT.md) · [Live chat and booking checks](docs/codex-log/CHAT.md#post-merge-production-verification)
 
 ## Data and evaluation
 
