@@ -54,11 +54,9 @@ export default function DeskPage() {
     setManualOpen(false);
     opener.current?.focus();
   }
-  const revealInitialPlan = useRef(false);
-  function analyse() {
+  function analyse(message?: string) {
     setManualOpen(false);
-    revealInitialPlan.current = !document.activeElement?.matches(":focus-visible");
-    void desk.analyse();
+    void desk.analyse(message);
   }
   useEffect(() => {
     if (touring) return;
@@ -71,26 +69,6 @@ export default function DeskPage() {
       }
     }
   }, [s.interpretation, s.manualIncident, s.booked, touring]);
-  useEffect(() => {
-    if (touring || !s.plan || !revealInitialPlan.current) return;
-    revealInitialPlan.current = false;
-    const timer = window.setTimeout(() => {
-      if (document.activeElement?.id === "desk-incident" && !document.querySelector('[role="dialog"]')) {
-        const panel = document.getElementById("desk-plans");
-        if (panel) reveal(panel);
-      }
-    }, 700);
-    const cancel = () => window.clearTimeout(timer);
-    window.addEventListener("wheel", cancel, { once: true, passive: true });
-    window.addEventListener("touchstart", cancel, { once: true, passive: true });
-    window.addEventListener("keydown", cancel, { once: true });
-    return () => {
-      cancel();
-      window.removeEventListener("wheel", cancel);
-      window.removeEventListener("touchstart", cancel);
-      window.removeEventListener("keydown", cancel);
-    };
-  }, [s.plan, touring]);
   const step = manualOpen ? 1 : shownReceipt || s.confirmation ? 3 : s.plan ? 2 : s.interpretation || s.manualIncident ? 1 : 0;
   const locked = !!shownReceipt || !!s.confirmation || !!s.stale || readingChat;
   const manualDisabled = !s.stock || !!s.confirmation || readingChat || s.busy === "book" || s.busy === "reset" || s.busy === "event";
@@ -141,30 +119,33 @@ export default function DeskPage() {
         {s.busy === "interpret" && !s.interpretation && <IncidentSkeleton />}
         {s.interpretation?.outcome === "incident" && <IncidentCard answer={s.interpretation} message={s.evidenceMessage} sku={s.sku}
           catalog={s.catalog} note={interpreterNote} edit={() => input.current?.focus()} select={id => desk.select(id, s.budget)} locked={locked} />}
-        {s.interpretation?.outcome === "clarification" && <ClarificationCard answer={s.interpretation}
+        {s.interpretation?.outcome === "clarification" && <ClarificationCard key={s.evidenceMessage} answer={s.interpretation}
+          message={s.evidenceMessage} onReply={analyse}
           onEdit={() => { setManualOpen(false); input.current?.focus(); }} onManual={openManual} manualOpen={manualOpen} />}
         {s.interpretation?.outcome === "ignore" && <p id="desk-incident" tabIndex={-1} className="desk-panel">{copy.notPicking.th}</p>}
         {s.interpretation?.outcome === "ignore" && <button className="text-action rewrite-action" onClick={() => input.current?.focus()}>{copy.editMessage.th}</button>}
         {s.interpretation?.outcome !== "incident" && interpreterNote}
-        {!touring && <a className="text-action chat-jump" href="#warehouse-chat">{chatCopy.jump.th}</a>}
         {manualOpen && s.stock && !manualDisabled && <ManualIncidentForm stock={s.stock} skus={s.catalog} previous={s.manualIncident}
           budgetValid={validBudget(s.budget)} cancel={closeManual} submit={incident => { setManualOpen(false); void desk.planManually(incident); }} />}
         {s.manualIncident && !manualOpen && <section className="desk-panel" id="desk-incident" tabIndex={-1} aria-labelledby="manual-result">
           <h2 id="manual-result">{copy.manualEntered.th}</h2><p>{copy.warehouse.th} {s.manualIncident.warehouse_id} · {s.manualIncident.sku_id}</p>
           <p>{copy.blocked.th} {formatBangkokTime(s.manualIncident.window_start)}–{formatBangkokTime(s.manualIncident.window_end)}</p></section>}
       </div>
-      <PlanCompare plan={s.plan} loading={loading} booked={!!shownReceipt} stale={!!s.stale}
-        notice={s.stale && <StaleBanner changes={s.stale.changes} refusal={s.stale.refusal} pending={!!s.busy || readingChat} replan={desk.replan} />}
-        reset={scenario.id === "hero" ? () => { setManualOpen(false); void desk.startAgain(); } : undefined} resetDisabled={!!s.busy || !!health?.degraded} />
+      <div className="plan-column">
+        <PlanCompare plan={s.plan} loading={loading} booked={!!shownReceipt} stale={!!s.stale}
+          notice={s.stale && <StaleBanner changes={s.stale.changes} refusal={s.stale.refusal} pending={!!s.busy || readingChat} replan={desk.replan} />}
+          reset={scenario.id === "hero" ? () => { setManualOpen(false); void desk.startAgain(); } : undefined} resetDisabled={!!s.busy || !!health?.degraded} />
+        {!shownReceipt && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
+          busy={!!s.busy} locked={!s.stock || locked} stale={!!s.stale} canBook={!!s.plan?.joint.lines.length && !!s.plannedInput && !s.error && !health?.degraded && !manualOpen} open={desk.openDialog} />}
+        {!touring && s.plan && !shownReceipt && <a className="text-action chat-jump" href="#warehouse-chat">{chatCopy.jump.th}</a>}
+        {!shownReceipt && <PlanInsights desk={desk} locked={locked || !!s.busy || manualOpen} />}
+      </div>
       <div className="stock-column"><StockPanel stock={s.stock} sku={sku} incident={desk.incident} plan={s.plan} receipt={shownReceipt?.receipt} waiting={s.busy === "interpret"} />
         <DemoEvents events={s.stock?.scenario.demo_events ?? scenario.demo_events} disabled={!s.stock || !!s.busy || !!s.confirmation || readingChat} apply={desk.applyEvent} /></div>
-      {!shownReceipt && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
-        busy={!!s.busy} locked={!s.stock || locked} stale={!!s.stale} canBook={!!s.plan?.joint.lines.length && !!s.plannedInput && !s.error && !health?.degraded && !manualOpen} open={desk.openDialog} />}
       {shownReceipt && <Receipt result={shownReceipt} plan={s.plan} newIncident={() => {
         if (params.has("receipt")) editTourUrl(p => p.delete("receipt"));
         void desk.startAgain();
       }} busy={!!s.busy} />}
-      {!shownReceipt && <PlanInsights desk={desk} locked={locked || !!s.busy || manualOpen} />}
     </div>
     {!touring && <WarehouseChat key={scenario.id + s.chatSession} scenario={scenario.id} incident={s.plannedInput?.incident ?? null}
       openings={s.outageMessages} warehouses={s.stock?.warehouses ?? []}

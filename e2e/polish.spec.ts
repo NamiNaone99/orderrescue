@@ -36,8 +36,8 @@ for (const width of [1440, 390]) {
     await trigger.focus();
     await page.keyboard.press("Enter");
     const guide = page.getByRole("dialog", { name: polishCopy.guide.th });
-    await expect(guide).toContainText("1/2");
-    await expect(guide).toContainText("2/2");
+    await expect(guide).toContainText("1 จาก 2 ใบ");
+    await expect(guide).toContainText("2 จาก 2 ใบ");
     await expect(guide).toContainText("฿88");
     await expect(guide).toContainText("14:30");
     await page.keyboard.press("Tab");

@@ -50,7 +50,7 @@ test("clarification leaves no plan until the operator enters a valid incident ma
   const first = page.getByRole("article", { name: copy.firstCome.th });
   await expect(first).toContainText("1/2");
   await expect(first).toContainText("฿32");
-  await expect(page.locator("#desk-announcements")).toContainText("จัดร่วมกัน ทันเวลา 2 จาก 2 ค่าใช้จ่ายเพิ่ม 88 บาท");
+  await expect(page.locator("#desk-announcements")).toContainText("จัดคลังใหม่ ทันรอบ 2 จาก 2 จ่ายเพิ่ม 88 บาท");
   await expect(page.getByRole("button", { name: copy.confirmRows.th })).toBeEnabled();
   await page.getByRole("button", { name: "฿87", exact: true }).click();
   await expect(page.getByRole("article", { name: copy.joint.th })).toContainText("1/2");

@@ -179,8 +179,8 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
     dispatch({ type: "manual", incident: entered });
     return makePlan(entered, entered.sku_id, s.budget);
   }
-  async function analyse() {
-    if (s.stale || queuedAnalysis.current) return;
+  async function analyse(message = s.message) {
+    if (s.stale || queuedAnalysis.current || !message.trim() || message.length > 500) return;
     if (!s.stock) {
       queuedAnalysis.current = true;
       const read = readInitial();
@@ -189,11 +189,12 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
       queuedAnalysis.current = false;
       if (!ready || pending.current?.signal.aborted) return;
     }
+    if (message !== s.message) dispatch({ type: "edit", message });
     return run("interpret", async (signal, apply) => {
-      const answer = await api.interpret({ scenario, message: s.message }, signal);
+      const answer = await api.interpret({ scenario, message }, signal);
       const ids = answer.incident?.sku_ids ?? [];
       const sku = ids.includes(s.sku) ? s.sku : ids.length === 1 ? ids[0] : "";
-      apply({ type: "interpreted", answer, message: s.message, receivedAt: new Date().toISOString(), sku });
+      apply({ type: "interpreted", answer, message, receivedAt: new Date().toISOString(), sku });
       if (signal.aborted) return;
       if (answer.incident && sku && validBudget(s.budget)) await makePlan(answer.incident, sku, s.budget);
       else {
