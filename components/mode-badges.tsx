@@ -2,28 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Cpu, Database, TriangleAlert } from "lucide-react";
-import { healthResponseSchema, type HealthResponse } from "@/lib/domain/contracts";
+import type { HealthResponse } from "@/lib/domain/contracts";
+import { api } from "@/lib/client/api";
 import { copy } from "@/lib/copy";
 
 export function ModeBadges() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   useEffect(() => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10_000);
     async function readHealth() {
       try {
-        const response = await fetch("/api/health", { signal: controller.signal, cache: "no-store" });
-        if (!response.ok) return;
-        const checked = healthResponseSchema.safeParse(await response.json());
-        if (!controller.signal.aborted && checked.success) setHealth(checked.data);
+        const result = await api.health(controller.signal);
+        if (!controller.signal.aborted) setHealth(result);
       } catch {
         // A missing or unreachable health route leaves the service modes unknown.
-      } finally {
-        clearTimeout(timer);
       }
     }
     void readHealth();
-    return () => { clearTimeout(timer); controller.abort(); };
+    return () => controller.abort();
   }, []);
   return <div className="mode-badges" aria-label={copy.services.th}>
     <span className="mode-badge"><Cpu size={16} aria-hidden /> <span lang="en">AI: {health ? health.model ?? "offline" : "—"}</span></span>

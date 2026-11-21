@@ -1,52 +1,54 @@
 "use client";
 
-import { ArrowRight, Boxes, ChartNoAxesColumnIncreasing, Check, GitCompareArrows, Inbox, ListOrdered, MessageSquareText, PackageOpen } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { copy } from "@/lib/copy";
+import { useDesk } from "@/lib/client/use-desk";
 import { DataBadge } from "@/components/header";
 import { useScenario } from "@/components/scenario-shell";
+import { ClarificationCard, IncidentCard, MessageInput } from "@/components/desk/message";
+import { BudgetControl, StockPanel } from "@/components/desk/controls";
+import { ConfirmDialog, ErrorNotice, Receipt } from "@/components/desk/booking";
+import { PlanCompare } from "@/components/desk/plan";
 
 const steps = [copy.stepMessage, copy.stepIncident, copy.stepPlan, copy.stepConfirm];
 
 export default function DeskPage() {
   const scenario = useScenario();
-  return <div className="shell-width desk">
-    <div className="desk-heading">
-      <div><div className="heading-line"><h1>{copy.desk.th}</h1><span lang="en">{copy.desk.en}</span></div>
-        <p>{copy.tagline.th}</p></div>
-      <DataBadge scenario={scenario} />
-    </div>
-    <ol className="workflow" aria-label={copy.workflow.th}>{steps.map((step, index) => (
-      <li aria-current={index === 0 ? "step" : undefined} key={step.en}>
-        <span className="step-count">{index + 1}</span>{step.th}
-        {index + 1 < steps.length && <span className="step-rule" aria-hidden />}
-      </li>
-    ))}</ol>
+  const desk = useDesk(scenario.id);
+  const { s } = desk;
+  const input = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (s.booked) document.getElementById("desk-receipt")?.focus();
+    else if (s.interpretation) document.getElementById("desk-incident")?.focus({ preventScroll: true });
+  }, [s.interpretation, s.booked]);
+  const step = s.booked || s.confirmation ? 3 : s.plan ? 2 : s.interpretation ? 1 : 0;
+  const locked = !!s.booked || !!s.confirmation;
+  const sku = s.sku || scenario.default_sku_id;
+  const loading = s.busy === "plan" || s.busy === "interpret" || s.busy === "load";
+  return <div className="shell-width desk dispatch">
+    <div className="desk-heading"><div><div className="heading-line"><h1>{copy.desk.th}</h1><span lang="en">{copy.desk.en}</span></div>
+      <p>{copy.tagline.th}</p></div><DataBadge scenario={scenario} /></div>
+    <ol className="workflow" aria-label={copy.workflow.th}>{steps.map((label, i) => <li aria-current={i === step ? "step" : undefined} key={label.en}>
+      <span className="step-count">{i+1}</span>{label.th}{i < 3 && <span className="step-rule" aria-hidden />}</li>)}</ol>
+    <div className="sr-only" role="status" aria-live="polite">{s.booked ? copy.booked.th : s.busy === "interpret" ? copy.analysing.th :
+      s.busy === "plan" ? copy.planning.th : s.plan ? [copy.joint.th,copy.onTime.th,s.plan.joint.on_time + "/" + s.plan.joint.total,copy.extraCost.th,"฿" + s.plan.joint.extra_cost_thb].join(" ")
+      : s.interpretation?.clarification?.question_th ?? ""}</div>
+    {s.error && !s.confirmation && <ErrorNotice error={s.error.api} retry={desk.retry} booking={s.error.operation === "book"} />}
     <div className="desk-grid">
-      <section className="desk-panel message-panel">
-        <div className="panel-heading"><span className="panel-icon"><MessageSquareText aria-hidden /></span>
-          <div><h2>{copy.message.th}</h2><span lang="en">{copy.message.en}</span></div></div>
-        <div className="message-space"><Inbox size={25} strokeWidth={1.6} aria-hidden />
-          <p>{copy.awaitMessage.th}</p><span lang="en">{copy.awaitMessage.en}</span></div>
-      </section>
-      <section className="desk-panel plan-panel">
-        <div className="panel-heading"><span className="panel-icon"><GitCompareArrows aria-hidden /></span>
-          <div><h2>{copy.compare.th}</h2><span lang="en">{copy.compare.en}</span></div></div>
-        <div className="strategy-grid">{[
-          { label: copy.firstCome, Icon: ListOrdered, kind: "baseline" },
-          { label: copy.joint, Icon: ChartNoAxesColumnIncreasing, kind: "joint" },
-        ].map(({ label, Icon, kind }) => <div className={"strategy " + kind} key={kind}>
-          <div className="strategy-title"><Icon size={18} aria-hidden /><div><h3>{label.th}</h3><span lang="en">{label.en}</span></div></div>
-          <dl><div><dt><Check size={14} aria-hidden />{copy.onTime.th}</dt><dd aria-label={copy.emptyValue.th}>—</dd></div>
-            <div><dt>{copy.extraCost.th}</dt><dd aria-label={copy.emptyValue.th}>—</dd></div></dl>
-        </div>)}</div>
-        <p className="plan-hint"><ArrowRight size={16} aria-hidden />{copy.hint.th}</p>
-      </section>
-      <section className="desk-panel stock-panel">
-        <div className="panel-heading"><span className="panel-icon"><Boxes aria-hidden /></span>
-          <div><h2>{copy.stock.th}</h2><span lang="en">{copy.stock.en}</span></div></div>
-        <div className="stock-empty"><span className="stock-sku" aria-label={copy.defaultSku.th + " " + scenario.default_sku_id}>
-          <PackageOpen size={16} aria-hidden />{scenario.default_sku_id}</span><span>{copy.stockEmpty.th}</span></div>
-      </section>
+      <div className="message-column"><MessageInput message={s.message} samples={s.stock?.scenario.sample_messages ?? []}
+        edit={desk.edit} analyse={desk.analyse} pending={s.busy === "interpret"} locked={!s.stock || locked} inputRef={input} />
+        {s.interpretation?.outcome === "incident" && <IncidentCard answer={s.interpretation} message={s.evidenceMessage} sku={s.sku}
+          catalog={s.catalog} select={id => desk.select(id, s.budget)} locked={locked} />}
+        {s.interpretation?.outcome === "clarification" && <ClarificationCard answer={s.interpretation} onEdit={() => input.current?.focus()} />}
+        {s.interpretation?.outcome === "ignore" && <p className="desk-panel" role="status">{copy.notPicking.th}</p>}
+      </div>
+      <PlanCompare plan={s.plan} loading={loading} booked={!!s.booked} />
+      <StockPanel stock={s.stock} sku={sku} incident={s.interpretation?.incident ?? null} plan={s.plan} />
+      {s.stock && !s.booked && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
+        busy={!!s.busy} locked={locked} canBook={!!s.plan?.joint.lines.length && !!s.plannedInput && !s.error} open={desk.openDialog} />}
+      {s.booked && s.plan && <Receipt result={s.booked} plan={s.plan} newIncident={desk.startAgain} busy={!!s.busy} />}
     </div>
+    <ConfirmDialog input={s.confirmation} plan={s.plan} busy={s.busy === "book"} error={s.error?.operation === "book" ? s.error.api : null}
+      cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
   </div>;
 }
