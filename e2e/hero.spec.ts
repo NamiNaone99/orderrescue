@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./smoke-test";
 import { copy } from "../lib/copy";
 import { analyseHero, resetDemo } from "./helpers";
 

@@ -1,21 +1,25 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { smokeOrigin } from "./e2e/smoke-env";
+
 const localURL = "http://localhost:3000";
-const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const baseURL = smokeOrigin();
+const smoke = process.env.ORDERRESCUE_SMOKE === "1";
+if (baseURL.startsWith("https:") && !smoke) throw new Error("Use pnpm smoke for hosted OrderRescue checks");
 
 export default defineConfig({
   testDir: "./e2e",
+  testMatch: smoke ? ["**/health.spec.ts", "**/home.spec.ts", "**/hero.spec.ts", "**/stale.spec.ts"] : undefined,
+  grep: smoke ? /@smoke/ : undefined,
   fullyParallel: false,
   workers: 1,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI && !smoke ? 1 : 0,
+  globalSetup: smoke ? "./e2e/smoke-setup.ts" : undefined,
+  timeout: smoke ? 75_000 : 30_000,
   reporter: [["html", { open: "never" }]],
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   use: {
-    baseURL: process.env.BASE_URL ?? localURL,
-    extraHTTPHeaders: bypassSecret ? {
-      "x-vercel-protection-bypass": bypassSecret,
-      "x-vercel-set-bypass-cookie": "true",
-    } : undefined,
+    baseURL,
   },
   webServer: process.env.BASE_URL === undefined ? {
     command: "pnpm build && pnpm start",

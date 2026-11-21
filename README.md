@@ -83,10 +83,24 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 ## Operations
 
 1. **Reset.** The desk's Reset action restores the selected seed and removes its reservations. Hero allows six resets per minute per IP. Real-day and all-scenario resets require the token.
-2. **Smoke.** Run `pnpm smoke` locally. For a deployment, point `BASE_URL` at the chosen URL and allow the smoke to reset and book the shared hero. Deployment evidence is `run by the team: <to fill>`.
+2. **Smoke.** Run `pnpm smoke` locally. The deployed workflow checks each Vercel success for this project and runs the four shared hero checks. Choose a time between presentations. The suite restores the synthetic hero before it starts and after it finishes, including after a failed check.
 3. **Rollback.** In Vercel, use Instant Rollback to return traffic to the last deployment that passed smoke. Database schema corrections use a forward migration. [Deployment runbook](docs/DEPLOY_PLAN.md) · [Vercel rollback](https://vercel.com/docs/instant-rollback)
 4. **Service fallback.** The live interpreter tries its second model after a failed attempt, then uses the offline reader. A depleted live quota also selects offline. A degraded database can serve memory reads and refuses writes.
 5. **Demo fallback.** Use healthy production, then offline interpretation, then explicitly selected memory storage. On the fallback laptop, run `pnpm build` followed by `pnpm start` in memory/offline mode. A team-prepared recording is the final option when available.
+
+To run the production smoke from PowerShell, supply the existing reset token in your local shell:
+
+```powershell
+$env:BASE_URL='https://orderrescue.vercel.app'; $env:DEMO_RESET_TOKEN='<token>'; pnpm smoke
+```
+
+To reset only the synthetic hero from PowerShell:
+
+```powershell
+'{"scenario":"hero"}' | curl.exe --silent --show-error --fail -X POST "https://orderrescue.vercel.app/api/demo/reset" -H "Content-Type: application/json" --data-binary "@-"
+```
+
+The Actions **Deployed smoke** workflow also accepts the canonical production URL on `main`. It checks the deployment's health and commit before changing hero. Reviewed main-line deployments can use the repository's optional Vercel protection bypass. Preview commits run with the reviewed main-branch test harness and use the public hero endpoint. A protected, unreviewed preview reports an access failure. [Vercel repository dispatch](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events)
 
 Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
 

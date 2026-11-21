@@ -1,0 +1,74 @@
+name: Deployed smoke
+
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: OrderRescue production URL
+        required: true
+        type: string
+        default: https://orderrescue.vercel.app
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orderrescue-deployed-hero
+  queue: max
+
+jobs:
+  smoke:
+    if: github.repository == 'NamiNaone99/orderrescue' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out the trusted test harness
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          path: harness
+          persist-credentials: false
+      - name: Verify the project, deployment origin and revision
+        id: target
+        run: node harness/scripts/smoke-target.mjs --github-event
+      - name: Check out the deployed revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          path: deployed
+          persist-credentials: false
+      - name: Identify a reviewed main-line deployment
+        id: trust
+        env:
+          DEPLOYED_SHA: ${{ steps.target.outputs.sha }}
+          DEPLOYED_REF: ${{ steps.target.outputs.ref }}
+        run: |
+          test "$(git -C deployed rev-parse HEAD)" = "$DEPLOYED_SHA"
+          suite=harness
+          if [ "$DEPLOYED_REF" = main ] && git -C harness merge-base --is-ancestor "$DEPLOYED_SHA" HEAD; then
+            echo 'credentials=true' >> "$GITHUB_OUTPUT"
+            if [ -f deployed/e2e/smoke-setup.ts ]; then suite=deployed; fi
+          fi
+          echo "suite=$suite" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: ${{ steps.trust.outputs.suite }}/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+        working-directory: ${{ steps.trust.outputs.suite }}
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: ${{ steps.trust.outputs.suite }}
+      - name: Smoke the verified deployment and restore hero
+        working-directory: ${{ steps.trust.outputs.suite }}
+        env:
+          BASE_URL: ${{ steps.target.outputs.url }}
+          ORDERRESCUE_DISPATCH_URL: ${{ github.event_name == 'repository_dispatch' && steps.target.outputs.url || '' }}
+          ORDERRESCUE_EXPECTED_SHA: ${{ steps.target.outputs.sha }}
+          DEMO_RESET_TOKEN: ${{ steps.trust.outputs.credentials == 'true' && secrets.DEMO_RESET_TOKEN || '' }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ steps.trust.outputs.credentials == 'true' && secrets.VERCEL_AUTOMATION_BYPASS_SECRET || '' }}
+        run: pnpm smoke

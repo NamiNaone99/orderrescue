@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:tz": "cross-env TZ=UTC vitest run tests/domain && cross-env TZ=Asia/Bangkok vitest run tests/domain",
     "e2e": "playwright test",
-    "smoke": "playwright test --grep @smoke",
+    "smoke": "cross-env ORDERRESCUE_SMOKE=1 playwright test --grep @smoke",
     "eval:rows": "tsx scripts/eval-rows.ts",
     "eval:check-corpus": "cross-env EVAL_REQUIRE_FULL_CORPUS=1 vitest run tests/evals/file.test.ts",
     "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/eval.ts",

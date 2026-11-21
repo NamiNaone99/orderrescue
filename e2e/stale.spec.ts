@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./smoke-test";
 import { copy } from "../lib/copy";
 import { errorResponseSchema, planResponseSchema, reservationResponseSchema, stateResponseSchema, type ReservationResponse } from "../lib/domain/contracts";
-import { resetDemo } from "./helpers";
+import { analyseHero, resetDemo } from "./helpers";
 
 test("stale hero plan names the slip and requires an explicit replan", { tag: "@smoke" }, async ({ page, request }) => {
   await resetDemo(request);
-  await page.goto("/?scenario=hero");
   const joint = page.getByRole("article", { name: copy.joint.th });
   let plans = 0;
   page.on("request", r => { if (new URL(r.url()).pathname === "/api/plan") plans++; });
-  await page.getByRole("button", { name: copy.analyse.th }).click();
+  await analyseHero(page);
   await expect(joint).toContainText("2/2");
   await page.getByRole("button", { name: "คลัง B แจ้งของพร้อมช้าเป็น 14:30" }).click();
   const banner = page.getByRole("region", { name: copy.stockChanged.th });
