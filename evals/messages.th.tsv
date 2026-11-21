@@ -1,0 +1,5 @@
+id	split	category	text	kind	warehouse	skus	start	end	evidence_quote	clarify_about	author	checked_by	scenario
+_rules			Synthetic team scenarios. A named shift maps to the shift table. Vague time words require clarification about time, including an explicit end with a vague start unless the shift is named.										""
+starter-hero-1	dev	clear	คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้	incident	A	SKU-X	13:00	18:00	งดหยิบ SKU-X รอบบ่ายวันนี้				hero
+starter-hero-2	heldout	ambiguous	ของตัวนั้นหยิบไม่ได้นะบ่ายนี้	clarification						warehouse			hero
+starter-hero-3	dev	irrelevant	พรุ่งนี้ใครเข้ากะเช้าบ้าง	ignore									hero
