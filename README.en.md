@@ -80,6 +80,8 @@ On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 o
 
 The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined local CHAT and INSIGHTS checks](docs/codex-log/CHAT.md) · [Live chat and booking checks](docs/codex-log/CHAT.md#post-merge-production-verification)
 
+At the CASES release (`2ae6a5b`), 353 local tests passed, the 22 hosted contracts were skipped, 51 domain cases passed in each time zone, and all 35 Chromium cases passed in 4.6 minutes. These checks exercised the five presenter cases, the original tour, chat, reservations and the budget frontier. [Final integrated verification](docs/codex-log/architecture-post-ui.md#commands-and-results)
+
 ## Data and evaluation
 
 | Label | What it covers |

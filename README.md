@@ -88,6 +88,8 @@ pnpm dev
 
 การทดสอบตัวเชื่อม Supabase กับ PostgreSQL บนเครื่องผ่านทั้ง 22 กรณี การตรวจฐานข้อมูลบนโฮสต์ 19 กรณีในตารางเป็นผลเดิมจาก T15 [ผลตรวจ CHAT และ INSIGHTS บนเครื่อง](docs/codex-log/CHAT.md) · [ผลยืนยันแชตและใบจองบนระบบจริง](docs/codex-log/CHAT.md#post-merge-production-verification)
 
+ที่รุ่น CASES (`2ae6a5b`) การทดสอบบนเครื่องผ่าน 353 กรณี ข้ามชุดบนโฮสต์ 22 กรณี การทดสอบโดเมนผ่าน 51 กรณีในแต่ละเขตเวลา และ Chromium ผ่านทั้ง 35 กรณีใน 4.6 นาที ครอบคลุมกรณีสาธิตทั้งห้า เดโมแปดขั้นตอน แชต การจอง และกราฟงบประมาณ [ผลตรวจรุ่นรวม](docs/codex-log/architecture-post-ui.md#commands-and-results)
+
 <a name="data-and-evaluation"></a>
 
 ## ที่มาของข้อมูลและผลประเมินการอ่านข้อความ

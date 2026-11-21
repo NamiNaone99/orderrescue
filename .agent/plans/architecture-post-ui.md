@@ -14,6 +14,7 @@ A release owner can identify the reads, validation, call limits and transaction 
 - [x] 2026-11-21 14:18 +07:00. Recorded local counts and payloads, previous and current hosted samples and the release owner's eight-step production smoke in the task report and ledger.
 - [x] 2026-11-21 15:25 +07:00. Rechecked CHAT, INSIGHTS, TOUR-F1 and T21 at `8411f1e`. Lint, types, build, 347 unit cases, 51 domain cases in each time zone and 12 local Chromium cases passed. Verified production transfer and smoke evidence with the coordinator.
 - [x] 2026-11-21 15:36 +07:00. Re-read the fetched checklist after T17b and README-TH merged at `a431bed`. Verified an empty runtime diff from the tested release and linked the release PRs in the ledger.
+- [x] 2026-11-21 16:00 +07:00. Traced all five CASES controls on `dcc3a93` to the existing interpreter, Plan and confirmed reports. The local production build passed 353 unit cases, the 51 domain cases in each time zone and the full 35-case Chromium suite in 4.6 minutes.
 
 ## Surprises & Discoveries
 
@@ -30,6 +31,8 @@ The pristine local fixture reproduces T22's public bytes and hashes when using i
 The four proposed changes remain product and architecture decisions. Two presentation findings at the reviewed SHA were independently reproduced. The guide-only issue and the restored-stock display do not alter the reservation protocol. The current release, local and previous hosted runs are identified individually in the [review](../../docs/codex-log/architecture-post-ui.md).
 
 TOUR-F1 closed both presentation findings. CHAT adds a stock-row grounding requirement for the proposed Interpret read and report-revision inputs for a future filtered Plan read. INSIGHTS confirms up to six read-only budget points and leaves the ordinary planning and reservation contracts intact.
+
+The five business cases add shareable entry points for actual desk actions. A case selection changes the URL and seeds a message. It cannot book inventory, apply a warehouse report or initiate a model call on its own.
 
 ## Steps and validation
 
