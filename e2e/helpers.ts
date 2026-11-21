@@ -1,13 +1,18 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { smokeOrigin, healthyCommit } from "./smoke-env";
 import { copy } from "../lib/copy";
 import type { ScenarioId } from "@/lib/domain/types";
 
 export async function resetDemo(request: APIRequestContext, scenario: ScenarioId = "hero") {
+  const remote = smokeOrigin().startsWith("https:");
+  if (remote && scenario !== "hero") throw new Error("Hosted smoke resets only synthetic hero");
   async function reset() {
+    if (remote) await healthyCommit(request);
     const response = await request.post("/api/demo/reset", {
       data: { scenario },
-      headers: { "x-demo-token": process.env.DEMO_RESET_TOKEN ?? "local-token" },
-    });
+      headers: scenario === "hero" ? {} : { "x-demo-token": process.env.DEMO_RESET_TOKEN ?? "local-token" },
+      maxRedirects: 0,
+    }).catch(() => { throw new Error("Demo reset request failed"); });
     return response.status();
   }
 
