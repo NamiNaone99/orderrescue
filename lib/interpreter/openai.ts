@@ -3,21 +3,22 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { ZodError } from "zod";
 import { INTERPRETER_TIMEOUT_MS, type InterpreterClient } from "./chain";
-import { rawInterpretationSchema } from "./schema";
+import { rawInterpretationSchema, chatInterpretationSchema } from "./schema";
 
 const incidentFormat = zodTextFormat(rawInterpretationSchema, "incident");
+const warehouseFormat = zodTextFormat(chatInterpretationSchema, "warehouse_report");
 
 export function createOpenAIInterpreter(model: string): InterpreterClient {
   const client = new OpenAI({ timeout: INTERPRETER_TIMEOUT_MS, maxRetries: 0, logLevel: "off" });
   return {
     name: `openai:${model}`,
-    async run({ systemPrompt, message, signal }) {
+    async run({ systemPrompt, message, signal, chat }) {
       try {
         const response = await client.responses.parse({
           model,
           instructions: systemPrompt,
           input: message,
-          text: { format: incidentFormat },
+          text: { format: chat ? warehouseFormat : incidentFormat },
           reasoning: { effort: "low" },
           max_output_tokens: 2048,
           store: false,

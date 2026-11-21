@@ -12,3 +12,11 @@ export const rawInterpretationSchema = z.strictObject({
 });
 
 export type RawInterpretation = z.infer<typeof rawInterpretationSchema>;
+
+// The chat format is a flat strict object for Structured Outputs. Existing outage-only callers keep their contract.
+export const chatInterpretationSchema = rawInterpretationSchema.extend({
+  event_type: z.enum(["outage", "delay", "stock_found", "resumed"]).nullable(),
+  event_time: z.string().nullable().describe("The explicitly reported new readiness or resumption time, HH:MM"),
+  quantity: z.int().nullable().describe("Additional units explicitly found, otherwise null"),
+});
+export type RawChatInterpretation = z.infer<typeof chatInterpretationSchema>;

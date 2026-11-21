@@ -1,7 +1,8 @@
 import "server-only";
-import type { InterpretResponse } from "@/lib/domain/contracts";
+import type { ChatContext, InterpretResponse } from "@/lib/domain/contracts";
 import type { Snapshot } from "@/lib/domain/types";
-import { offlineInterpret } from "./offline";
+import { offlineChat, offlineInterpret } from "./offline";
+import { validateChat } from "./chat";
 import { buildSystemPrompt } from "./prompt";
 import { checkMessage, InvalidOutputError, validate } from "./validate";
 
@@ -11,15 +12,15 @@ export type InterpreterResult =
 
 export interface InterpreterClient {
   name: `openai:${string}`;
-  run(request: { systemPrompt: string; message: string; signal: AbortSignal }): Promise<InterpreterResult>;
+  run(request: { systemPrompt: string; message: string; signal: AbortSignal; chat?: boolean }): Promise<InterpreterResult>;
 }
 
-export type InterpreterOptions = { clients?: readonly InterpreterClient[]; allowAttempt?: () => boolean };
+export type InterpreterOptions = { clients?: readonly InterpreterClient[]; allowAttempt?: () => boolean; chat?: ChatContext };
 
 type Attempt = InterpretResponse["interpreter"]["attempts"][number];
 export const INTERPRETER_TIMEOUT_MS = 9_000;
 
-async function runClient(client: InterpreterClient, systemPrompt: string, message: string) {
+async function runClient(client: InterpreterClient, systemPrompt: string, message: string, chat: boolean) {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
@@ -30,7 +31,7 @@ async function runClient(client: InterpreterClient, systemPrompt: string, messag
     }, INTERPRETER_TIMEOUT_MS);
   });
   try {
-    return await Promise.race([client.run({ systemPrompt, message, signal: controller.signal }), deadline]);
+    return await Promise.race([client.run({ systemPrompt, message, signal: controller.signal, ...(chat ? { chat } : {}) }), deadline]);
   } finally {
     clearTimeout(timer);
   }
@@ -51,6 +52,7 @@ export async function interpret(
 ): Promise<InterpretResponse> {
   const started = performance.now();
   const checkedMessage = checkMessage(message);
+  const check = (raw: unknown) => deps.chat ? validateChat(raw, message, snapshot, deps.chat) : validate(raw, message, snapshot);
   const attempts: Attempt[] = [];
   let rateLimited = false;
 
@@ -65,7 +67,7 @@ export async function interpret(
 
   const clients = deps.clients?.slice(0, 2) ?? [];
   if (clients.length) {
-    const systemPrompt = buildSystemPrompt(snapshot);
+    const systemPrompt = buildSystemPrompt(snapshot, deps.chat);
     for (const client of clients) {
       if (deps.allowAttempt && !deps.allowAttempt()) {
         rateLimited = true;
@@ -80,13 +82,13 @@ export async function interpret(
         }));
       }
       try {
-        const response = await runClient(client, systemPrompt, checkedMessage);
+        const response = await runClient(client, systemPrompt, checkedMessage, !!deps.chat);
         if (response.status !== "parsed") {
           logCall(response.status);
           attempts.push({ name: client.name, ok: false, reason: response.status });
           continue;
         }
-        const answer = validate(response.output, message, snapshot);
+        const answer = check(response.output);
         logCall(answer.outcome, answer.validation.issues);
         if (answer.validation.issues.includes("V5")) {
           attempts.push({ name: client.name, ok: false, reason: "V5" });
@@ -101,5 +103,5 @@ export async function interpret(
     }
   }
 
-  return finish(validate(offlineInterpret(message, snapshot), message, snapshot), "offline");
+  return finish(check(deps.chat ? offlineChat(message, snapshot) : offlineInterpret(message, snapshot)), "offline");
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   orderStatusSchema, reservationRequestSchema, reservationResponseSchema, scenarioSchema,
   skuSchema, stateResponseSchema, stockRowSchema, warehouseIdSchema, warehouseSchema,
+  chatApplyResponseSchema, resumedEventSchema, warehouseEventSchema, type WarehouseEvent,
 } from "@/lib/domain/contracts";
 import type { ScenarioId } from "@/lib/domain/types";
 import { filterSnapshot, stateVersion, StoreError, type SnapshotOptions, type Store, type StoreReservationRequest } from "./types";
@@ -72,12 +73,20 @@ export class SupabaseStore<Id extends string = ScenarioId> implements Store<Id> 
       stock: z.array(stockRowSchema.safeExtend({ ready_at: timestamp })),
       orders: z.array(order), order_lines: z.array(orderLine),
       reservations: z.array(receipt.extend({ budget_thb: z.int().nonnegative() })),
+      resumptions: z.array(resumedEventSchema),
+      report_revisions: z.array(z.strictObject({ warehouse_id: warehouseIdSchema, sku_id: z.string(), report_revision: z.int().positive() })),
     });
-    const result = await read(this.client.from("scenario_snapshots")
-      .select("scenario,warehouses,skus,stock,orders,order_lines,reservations")
+    const result = await read(this.client.from("scenario_report_snapshots")
+      .select("scenario,warehouses,skus,stock,orders,order_lines,reservations,resumptions,report_revisions")
       .eq("id", scenarioId).maybeSingle(), schema.nullable());
     if (!result) throw new StoreError("INVALID_INPUT", "Unknown scenario");
-    return filterSnapshot<Id>(result, opts);
+    const { report_revisions, resumptions, ...snapshot } = result;
+    const revisions = new Map(report_revisions.map(row => [row.warehouse_id + "/" + row.sku_id, row.report_revision]));
+    for (const row of snapshot.stock) {
+      const revision = revisions.get(row.warehouse_id + "/" + row.sku_id);
+      if (revision !== undefined) row.report_revision = revision;
+    }
+    return filterSnapshot<Id>({ ...snapshot, ...(resumptions.length ? { resumptions } : {}) }, opts);
   }
 
   async reserve(input: StoreReservationRequest<Id>) {
@@ -100,6 +109,14 @@ export class SupabaseStore<Id extends string = ScenarioId> implements Store<Id> 
 
   async reset(scenarioId?: Id) {
     await read(this.client.rpc("reset_demo", { p_scenario: scenarioId ?? null }), z.null());
+  }
+
+  async applyWarehouseReport(scenarioId: Id, key: string, input: WarehouseEvent) {
+    const parsed = warehouseEventSchema.safeParse(input);
+    if (!z.uuid().safeParse(key).success || !parsed.success) throw new StoreError("INVALID_INPUT", "Invalid report");
+    return read(this.client.rpc("apply_warehouse_report", {
+      p_scenario: scenarioId, p_key: key, p_event: parsed.data,
+    }), chatApplyResponseSchema);
   }
 
   async health() {

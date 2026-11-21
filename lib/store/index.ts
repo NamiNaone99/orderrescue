@@ -37,6 +37,10 @@ const supabase: Store = {
     requireDatabase(scenarioId);
     return database.applyDemoEvent(scenarioId, eventId);
   },
+  async applyWarehouseReport(scenarioId, key, event) {
+    requireDatabase(scenarioId);
+    return database.applyWarehouseReport(scenarioId, key, event);
+  },
   async reset(scenarioId) {
     requireDatabase(scenarioId);
     return database.reset(scenarioId);

@@ -20,7 +20,8 @@ export function publicState(snapshot: StoreSnapshot): StateResponse {
     },
     warehouses: warehouses.map(({ id, name_th, is_home }) => ({ id, name_th, is_home })),
     skus: skus.map(({ id, name }) => ({ id, name })),
-    stock: stock.map(({ warehouse_id, sku_id, on_hand, committed, ready_at, extra_cost_per_unit_thb, revision }) => ({
+    stock: stock.map(({ warehouse_id, sku_id, on_hand, committed, ready_at, extra_cost_per_unit_thb, revision, report_revision }) => ({
+      ...(report_revision === undefined ? {} : { report_revision }),
       warehouse_id, sku_id, on_hand, committed, free: on_hand - committed, ready_at, extra_cost_per_unit_thb, revision,
     })),
     orders: orders.map(({ id, received_at, deadline_at, home_warehouse_id, status }) => ({
