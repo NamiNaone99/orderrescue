@@ -80,6 +80,8 @@ On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 o
 
 The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined local CHAT and INSIGHTS checks](docs/codex-log/CHAT.md) · [Live chat and booking checks](docs/codex-log/CHAT.md#post-merge-production-verification)
 
+At the CASES release (`2ae6a5b`), 353 local tests passed, the 22 hosted contracts were skipped, 51 domain cases passed in each time zone, and all 35 Chromium cases passed in 4.6 minutes. These checks exercised the five presenter cases, the original tour, chat, reservations and the budget frontier. [Final integrated verification](docs/codex-log/architecture-post-ui.md#commands-and-results)
+
 ## Data and evaluation
 
 | Label | What it covers |
@@ -116,7 +118,7 @@ For a manual run of **Deployed smoke** in GitHub Actions, use the canonical prod
 
 Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
 
-On the T21 deployment at `8411f1e`, the manually dispatched GitHub smoke job passed in 55 seconds and the subsequent Windows run passed four of four checks in 22.2 seconds. The hero returned to its initial state. The workflow listens for `vercel.deployment.success`. An automatic dispatch had yet to be observed at verification. [Production results](docs/codex-log/T21.md#hosted-acceptance) · [Manual Actions run](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
+On the T21 deployment at `8411f1e`, the manually dispatched GitHub smoke job passed in 55 seconds and the subsequent Windows run passed four of four checks in 22.2 seconds. The hero returned to its initial state. The workflow listens for `vercel.deployment.success`. On README release `a431bed`, Vercel triggered a real `repository_dispatch`. Attempt 1 received HTTP 302 before any reset. After the project-scoped credential was configured, attempt 2 passed in 53 seconds. Unreviewed previews still receive neither credential. [Automatic production run, attempt 2](https://github.com/NamiNaone99/orderrescue/actions/runs/44885621893/attempts/2) [Production results](docs/codex-log/T21.md#hosted-acceptance) · [Manual Actions run](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
 
 The team records its deployment sign-off in `run by the team: <to fill>` and its submission URL in `Live: <to fill>`.
 

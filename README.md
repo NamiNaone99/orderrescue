@@ -88,6 +88,8 @@ pnpm dev
 
 การทดสอบตัวเชื่อม Supabase กับ PostgreSQL บนเครื่องผ่านทั้ง 22 กรณี การตรวจฐานข้อมูลบนโฮสต์ 19 กรณีในตารางเป็นผลเดิมจาก T15 [ผลตรวจ CHAT และ INSIGHTS บนเครื่อง](docs/codex-log/CHAT.md) · [ผลยืนยันแชตและใบจองบนระบบจริง](docs/codex-log/CHAT.md#post-merge-production-verification)
 
+ที่รุ่น CASES (`2ae6a5b`) การทดสอบบนเครื่องผ่าน 353 กรณี ข้ามชุดบนโฮสต์ 22 กรณี การทดสอบโดเมนผ่าน 51 กรณีในแต่ละเขตเวลา และ Chromium ผ่านทั้ง 35 กรณีใน 4.6 นาที ครอบคลุมกรณีสาธิตทั้งห้า เดโมแปดขั้นตอน แชต การจอง และกราฟงบประมาณ [ผลตรวจรุ่นรวม](docs/codex-log/architecture-post-ui.md#commands-and-results)
+
 <a name="data-and-evaluation"></a>
 
 ## ที่มาของข้อมูลและผลประเมินการอ่านข้อความ
@@ -128,7 +130,7 @@ $env:BASE_URL='https://orderrescue.vercel.app'; $env:DEMO_RESET_TOKEN='<token>';
 
 API วางแผนและ API จองใช้โควตาเดียวกันต่อ IP ในแต่ละอินสแตนซ์ โดยส่งคำขอติดกันได้ 20 ครั้ง และได้สิทธิ์เพิ่ม 1 ครั้งต่อวินาที คำขอ JSON ที่มีขนาดเกิน 16,384 ไบต์จะได้รับ HTTP 413 ส่วนโควตาอ่านข้อความและโควตารีเซ็ต hero แยกจากกัน
 
-สำหรับรุ่น T21 ที่ `8411f1e` ทีมสั่งรันเวิร์กโฟลว์บน GitHub เองและผ่านใน 55 วินาที จากนั้นรันบน Windows ผ่านทั้ง 4 กรณีใน 22.2 วินาที ข้อมูล hero กลับสู่สถานะตั้งต้น เวิร์กโฟลว์ตั้งค่ารับเหตุการณ์ `vercel.deployment.success` แล้ว แต่ ณ เวลาที่ตรวจยังไม่พบการรันจากเหตุการณ์อัตโนมัติ [ผลตรวจบนระบบจริง](docs/codex-log/T21.md#hosted-acceptance) · [รายการที่ทีมสั่งรันบน GitHub](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
+สำหรับรุ่น T21 ที่ `8411f1e` ทีมสั่งรันเวิร์กโฟลว์บน GitHub เองและผ่านใน 55 วินาที จากนั้นรันบน Windows ผ่านทั้ง 4 กรณีใน 22.2 วินาที ข้อมูล hero กลับสู่สถานะตั้งต้น เวิร์กโฟลว์ตั้งค่ารับเหตุการณ์ `vercel.deployment.success` แล้ว เมื่อขึ้นรุ่น README ที่ `a431bed` แล้ว Vercel ส่ง `repository_dispatch` ถึง GitHub จริง การตรวจครั้งแรกได้รับ HTTP 302 ก่อนรีเซ็ตข้อมูล หลังตั้งค่าข้อมูลรับรองเฉพาะโปรเจกต์ การตรวจครั้งที่ 2 ผ่านใน 53 วินาที รุ่น preview ที่ยังไม่ผ่านการรีวิวยังคงไม่ได้รับข้อมูลรับรองทั้งสองรายการ [ผลตรวจ production อัตโนมัติครั้งที่ 2](https://github.com/NamiNaone99/orderrescue/actions/runs/44885621893/attempts/2) [ผลตรวจบนระบบจริง](docs/codex-log/T21.md#hosted-acceptance) · [รายการที่ทีมสั่งรันบน GitHub](https://github.com/NamiNaone99/orderrescue/actions/runs/44883906706)
 
 ทีมลงชื่อยืนยันผลการตรวจบนระบบจริงในช่อง `run by the team: <to fill>` และยืนยัน URL ที่ใช้ส่งผลงานในช่อง `Live: <to fill>`
 
