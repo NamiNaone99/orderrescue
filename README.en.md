@@ -145,7 +145,7 @@ Per-visitor workspaces, general stock or order editing, multi-SKU joint planning
 
 ### Accessibility evidence
 
-Local axe scans found zero WCAG 2.0/2.1 A/AA violations on the planned desk and confirmation dialog at 1280×720 and 390×844. T20 also checked the demo guide, data page and not-found page at three widths, and reached the receipt by keyboard under reduced motion. The dedicated T17b audit is pending at this revision. [UI verification and screenshots](docs/codex-log/T20.md) · [Local scans](docs/codex-log/T23.md)
+Local axe scans found zero WCAG 2.0/2.1 A/AA violations on the planned desk and confirmation dialog at 1280×720 and 390×844. T20 also checked the demo guide, data page and not-found page at three widths, and reached the receipt by keyboard under reduced motion. T17b tested the production build at `8411f1e`. All 34 Chromium cases passed in 4.5 minutes, including both real-day cases. Keyboard navigation, touch booking and horizontal overflow checks passed. The planned-desk and confirmation-dialog scans recorded zero open accessibility issues at the two tested widths. [T17b results](docs/codex-log/README-TH.md#t17b) · [UI verification and screenshots](docs/codex-log/T20.md) · [Local scans](docs/codex-log/T23.md)
 
 ## How we used Codex
 
