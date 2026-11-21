@@ -1,6 +1,10 @@
 export interface CopyEntry { th: string; en: string }
 
 export const copy = {
+  demoEvents: { th: "จำลองเหตุการณ์", en: "Demo events" },
+  eventApplied: { th: "ใช้แล้ว", en: "Applied" },
+  missingRow: { th: "ไม่พบรายการ", en: "Row unavailable" },
+  keyConflict: { th: "รหัสยืนยันนี้ถูกใช้กับแผนอื่นแล้ว", en: "This confirmation key belongs to another plan." },
   sample: { th: "ข้อความตัวอย่าง", en: "Samples" },
   analysing: { th: "กำลังอ่านข้อความ...", en: "Reading message…" },
   planning: { th: "กำลังวางแผน", en: "Planning" },
