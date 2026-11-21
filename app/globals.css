@@ -34,11 +34,12 @@
   * { box-sizing: border-box; border-color: var(--border); }
   html { min-height: 100%; background: var(--background); }
   body { margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
-    color: var(--foreground); background: var(--background); font: 400 16px/1.62 var(--font-sans, "Noto Sans Thai"), system-ui, sans-serif;
+    color: var(--foreground); background: var(--background); font: 400 16px/1.62 var(--font-sans, "Sarabun"), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
   h1, h2, h3, p, ol, dl, dd { margin: 0; }
   a { text-decoration: none; color: inherit; }
-  button, input, select { font: inherit; }
+  button, input, select, textarea { font: inherit; }
+  code, kbd, pre, samp { font-family: var(--font-sans, "Sarabun"), sans-serif; }
   button, select, a { -webkit-tap-highlight-color: transparent; }
   button:not(:disabled), select { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
@@ -99,7 +100,7 @@ h1 { font-size: 30px; font-weight: 650; line-height: 1.4; letter-spacing: -.055e
 .workflow { list-style: none; display: flex; align-items: center; width: fit-content; max-width: 100%; padding: 0; margin-bottom: 18px; }
 .workflow li { display: flex; align-items: center; gap: 7px; font-size: 14px; white-space: nowrap; color: var(--muted-foreground); }
 .workflow li[aria-current] { color: var(--ink-green); font-weight: 650; }
-.step-count { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #e7edee; font: 600 14px/1 system-ui, sans-serif; }
+.step-count { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #e7edee; font: 600 14px/1 var(--font-sans), sans-serif; }
 .workflow li[aria-current] .step-count { color: #fff; background: var(--primary); }
 .step-rule { width: clamp(16px, 3vw, 44px); height: 1px; background: #cbd7d4; margin: 0 9px 0 2px; }
 .desk-grid { display: grid; grid-template-columns: repeat(12,minmax(0,1fr)); gap: 16px; }

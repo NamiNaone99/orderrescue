@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Check, CircleAlert, Copy, LoaderCircle, RotateCcw, TicketCheck } from "lucide-react";
-import { copy } from "@/lib/copy";
+import { Check, CircleAlert, Copy, Download, LoaderCircle, RotateCcw, TicketCheck } from "lucide-react";
+import { copy, polishCopy } from "@/lib/copy";
 import { DeskApiError } from "@/lib/client/api";
 import type { PlanResponse, ReservationRequest, ReservationResponse } from "@/lib/domain/contracts";
 import { formatThb } from "@/lib/domain/money";
@@ -56,15 +56,31 @@ export function Receipt({ result, plan, newIncident, busy }: { result: Reservati
     try { await navigator.clipboard.writeText(plain); setNotice(copy.copied.th); }
     catch { setNotice(copy.copyFailed.th); }
   }
+  function downloadCsv() {
+    const rows = [["receipt_id", "created_at", "order_id", "sku_id", "warehouse_id", "qty", "unit_cost_thb", "line_cost_thb"],
+      ...receipt.lines.map(line => [receipt.id, receipt.created_at, line.order_id, line.sku_id, line.warehouse_id, line.qty,
+        line.unit_cost_thb, line.qty * line.unit_cost_thb])];
+    const csv = rows.map(row => row.map(cell => {
+      const value = String(cell);
+      const safe = /^[=+@\-\t\r]/.test(value) ? "'" + value : value;
+      return '"' + safe.replaceAll('"', '""') + '"';
+    }).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "orderrescue-" + receipt.id + ".csv";
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   return <section id="desk-receipt" className="desk-panel receipt-panel" tabIndex={0} aria-labelledby="receipt-heading">
     <div className="panel-heading"><span className="panel-icon"><TicketCheck /></span><div><h2 id="receipt-heading">{copy.receipt.th}</h2><span lang="en">{copy.receipt.en}</span></div>
       <span className="receipt-badge"><Check />{copy.booked.th}</span></div>
-    <div className="receipt-meta"><span title={receipt.id}>{copy.receiptId.th} <b>{receipt.id.slice(0,8)}</b></span>
+    <div className="receipt-meta"><span className="receipt-reference" title={receipt.id}>{copy.receiptId.th} <b>{receipt.id.slice(0,8)}</b></span>
       <span>{copy.time.th} <b>{formatBangkokTime(receipt.created_at)}</b></span><span title={receipt.idempotency_key}>{copy.replayKey.th} <b>{receipt.idempotency_key.slice(0,8)}</b></span></div>
     <BookingLines lines={receipt.lines} /><div className="total-line"><span>{copy.total.th}</span><b>{formatThb(receipt.total_extra_cost_thb)}</b></div>
     {result.replayed && <p>{copy.replayed.th}</p>}
     {plan.joint.needs_human.length > 0 && <p>{copy.needsHuman.th} {plan.joint.needs_human.map(o => "#" + o.order_id).join(", ")}</p>}
-    <div className="receipt-actions"><button className="outline-action" onClick={copyText}><Copy />{copy.copyReceipt.th}</button><small role="status">{notice}</small>
+    <div className="receipt-actions"><button className="outline-action" onClick={copyText}><Copy />{copy.copyReceipt.th}</button><button type="button" className="outline-action" onClick={downloadCsv}><Download aria-hidden />{polishCopy.download.th}</button><small role="status">{notice}</small>
       <button className="primary-action" disabled={busy} onClick={newIncident}><RotateCcw />{copy.newIncident.th}</button></div>
   </section>;
 }

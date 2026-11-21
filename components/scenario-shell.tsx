@@ -6,7 +6,7 @@ import type { Scenario } from "@/lib/domain/types";
 import { Header } from "./header";
 import { ServiceHealthProvider } from "./mode-badges";
 
-export type ShellScenario = Pick<Scenario, "id" | "name_th" | "name_en" | "kind" | "now_at" | "default_sku_id">;
+export type ShellScenario = Pick<Scenario, "id" | "name_th" | "name_en" | "kind" | "now_at" | "default_sku_id" | "sample_messages" | "default_budget_thb" | "demo_events">;
 
 const ActiveScenario = createContext<ShellScenario | null>(null);
 

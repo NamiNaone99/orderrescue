@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Boxes, ChevronDown, Clock3, Code2, Database, FlaskConical, Layers3, LayoutDashboard } from "lucide-react";
-import { copy, bilingual } from "@/lib/copy";
+import { copy } from "@/lib/copy";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { ModeBadges } from "./mode-badges";
 import { ResetControl } from "./reset-control";
@@ -19,8 +19,8 @@ const nav = [
 export function DataBadge({ scenario }: { scenario: ShellScenario }) {
   const label = scenario.kind === "synthetic" ? copy.synthetic : copy.realDerived;
   const Icon = scenario.kind === "synthetic" ? FlaskConical : Layers3;
-  return <Link className="data-badge" href={"/data?scenario=" + scenario.id} aria-label={bilingual(label)}>
-    <Icon size={15} aria-hidden /><span>{label.th}<span lang="en">{label.en}</span></span>
+  return <Link className="data-badge" href={"/data?scenario=" + scenario.id}>
+    <Icon size={15} aria-hidden /><span>{label.th} <span lang="en">{label.en}</span></span>
   </Link>;
 }
 
