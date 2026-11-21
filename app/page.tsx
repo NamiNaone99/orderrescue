@@ -14,7 +14,10 @@ import { BudgetControl, StockPanel } from "@/components/desk/controls";
 import { ConfirmDialog, ErrorNotice, Receipt } from "@/components/desk/booking";
 import { PlanCompare } from "@/components/desk/plan";
 import { DemoEvents } from "@/components/DemoEvents";
-import { WarehouseChat } from "@/components/desk/warehouse-chat";
+import { WarehouseChat, type ChatComposer } from "@/components/desk/warehouse-chat";
+import { DemoCases } from "@/components/desk/demo-cases";
+import { findDemoCase } from "@/lib/client/demo-cases";
+import { heroFollowups } from "@/lib/domain/chat-samples";
 import { StaleBanner } from "@/components/StaleBanner";
 import { ManualIncidentForm } from "@/components/ManualIncidentForm";
 import { useServiceHealth } from "@/components/mode-badges";
@@ -31,13 +34,23 @@ export default function DeskPage() {
   const scenario = useScenario();
   const query = useDeskQuery();
   const params = new URLSearchParams(query);
-  const desk = useDesk(scenario.id, scenario, params.get("receipt"));
+  const selectedCase = params.get("tour") === "1" ? undefined : findDemoCase(params.get("case"));
+  const caseSample = selectedCase?.scenario === scenario.id ? scenario.sample_messages[selectedCase.sample]?.text : undefined;
+  const desk = useDesk(scenario.id, scenario, params.get("receipt"), selectedCase?.sample);
   const { s, restored: saved, stockSku: sku } = desk;
   const touring = scenario.id === "hero" && params.get("tour") === "1";
   const [tourHost, setTourHost] = useState<HTMLDivElement | null>(null);
   const shownReceipt = s.booked ?? (saved ? { receipt: saved } : null);
   const health = useServiceHealth();
   const input = useRef<HTMLTextAreaElement>(null);
+  const chatComposer = useRef<ChatComposer>(null);
+  const returningToCases = useRef(false);
+  useEffect(() => {
+    if (!touring && returningToCases.current) {
+      returningToCases.current = false;
+      document.getElementById("demo-case")?.focus();
+    }
+  }, [touring]);
   const [manualOpen, setManualOpen] = useState(false);
   const [readingChat, setReadingChat] = useState(false);
   const [viewingChat, setViewingChat] = useState(false);
@@ -103,6 +116,11 @@ export default function DeskPage() {
   return <div className="shell-width desk dispatch" data-step={step} data-scenario={scenario.id} data-action={mobileAction()} data-touring={touring || undefined}>
     <div className="desk-heading"><div><div className="heading-line"><h1>{copy.desk.th}</h1><span lang="en">{copy.desk.en}</span></div>
       <p>{copy.tagline.th}</p></div><div className="desk-heading-tools"><DataBadge scenario={scenario} /><DemoGuide /></div></div>
+    {!touring && <DemoCases selected={selectedCase} desk={desk} sample={caseSample} reading={readingChat} booked={!!shownReceipt}
+      run={analyse} prepare={type => {
+        const sample = heroFollowups.find(item => item.type === type);
+        if (sample) chatComposer.current?.prepare(sample);
+      }} />}
     <ol className="workflow" aria-label={copy.workflow.th}>{steps.map((label, i) => <li data-complete={i < step || (!!shownReceipt && !manualOpen)} aria-current={i === step ? "step" : undefined} key={label.en}>
       <span className="step-count">{i < step || (shownReceipt && !manualOpen) ? <Check aria-hidden /> : i + 1}</span>{label.th}{i < 3 && <span className="step-rule" aria-hidden />}</li>)}</ol>
     <div id="desk-announcements" className="sr-only" role="status" aria-live="polite" aria-atomic="false">
@@ -114,7 +132,7 @@ export default function DeskPage() {
     {s.error && !s.confirmation && <ErrorNotice error={s.error.api} retry={desk.retry} booking={s.error.operation === "book"} />}
     <div className="desk-grid">
       <div className="message-column"><MessageInput message={s.message} samples={s.stock?.scenario.sample_messages ?? scenario.sample_messages}
-        edit={text => { setManualOpen(false); desk.edit(text); }} analyse={analyse}
+        edit={text => { setManualOpen(false); desk.edit(text); }} analyse={() => analyse()}
         pending={s.busy === "interpret"} locked={locked || (!!s.error && !s.stock)} editingDisabled={!s.stock} inputRef={input} onManual={openManual} manualOpen={manualOpen} manualDisabled={manualDisabled} />
         {s.busy === "interpret" && !s.interpretation && <IncidentSkeleton />}
         {s.interpretation?.outcome === "incident" && <IncidentCard answer={s.interpretation} message={s.evidenceMessage} sku={s.sku}
@@ -147,13 +165,14 @@ export default function DeskPage() {
         void desk.startAgain();
       }} busy={!!s.busy} />}
     </div>
-    {!touring && <WarehouseChat key={scenario.id + s.chatSession} scenario={scenario.id} incident={s.plannedInput?.incident ?? null}
+    {!touring && <WarehouseChat composer={chatComposer} key={scenario.id + s.chatSession} scenario={scenario.id} incident={s.plannedInput?.incident ?? null}
       openings={s.outageMessages} warehouses={s.stock?.warehouses ?? []}
       disabled={!s.stock || !!s.busy || !!s.confirmation || !!shownReceipt || s.error?.operation === "book"}
       degraded={!!health?.degraded} setReading={setReadingChat} setVisible={setViewingChat}
       acceptOutage={desk.acceptChatIncident} applyReport={desk.applyReport} />}
     <ConfirmDialog input={s.confirmation} plan={s.plan} busy={s.busy === "book"} degraded={!!health?.degraded} error={s.error?.operation === "book" ? s.error.api : null}
       tourHost={touring ? setTourHost : undefined} cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
-    {touring && <GuidedDemo desk={desk} query={query} host={tourHost} degraded={!!health?.degraded} restored={saved} />}
+    {touring && <GuidedDemo desk={desk} query={query} host={tourHost} degraded={!!health?.degraded} restored={saved}
+      onChooseCase={() => { returningToCases.current = true; }} />}
   </div>;
 }

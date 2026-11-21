@@ -24,7 +24,7 @@ const initial: DispatchState = {
 type Action =
   | { type: "begin"; op: Operation }
   | { type: "failed"; op: Operation; error: DeskApiError }
-  | { type: "loaded"; stock: StateResponse; catalog: StateResponse["skus"] }
+  | { type: "loaded"; stock: StateResponse; catalog: StateResponse["skus"]; message: string }
   | { type: "edit"; message: string }
   | { type: "interpreted"; answer: InterpretResponse; message: string; sku: string; receivedAt: string; sender?: string | null }
   | { type: "manual"; incident: PlanRequest["incident"] }
@@ -63,7 +63,7 @@ function reducer(s: DispatchState, a: Action): DispatchState {
         confirmation: a.op === "book" && (a.error.status === 422 || a.error.status === 429) ? null : s.confirmation };
     }
     case "loaded": return { ...initial, chatSession: s.chatSession + 1, stock: a.stock, catalog: a.catalog, busy: null,
-      message: a.stock.scenario.sample_messages[0]?.text ?? "", budget: String(a.stock.scenario.default_budget_thb) };
+      message: a.message, budget: String(a.stock.scenario.default_budget_thb) };
     case "edit": return { ...s, message: a.message, interpretation: null, manualIncident: null, plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
     case "interpreted": return { ...s, interpretation: a.answer, manualIncident: null, message: a.message, evidenceMessage: a.message, sku: a.sku,
       outageMessages: a.answer.incident ? [...s.outageMessages, { receivedAt: a.receivedAt,
@@ -87,9 +87,9 @@ export function validBudget(value: string) {
   return /^\d+$/.test(value) && Number.isSafeInteger(Number(value));
 }
 
-export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scenario"], "sample_messages" | "default_budget_thb" | "default_sku_id">, receiptId: string | null) {
+export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scenario"], "sample_messages" | "default_budget_thb" | "default_sku_id">, receiptId: string | null, sampleIndex = 0) {
   const [s, dispatch] = useReducer(reducer, defaults, seed => ({
-    ...initial, message: seed.sample_messages[0]?.text ?? "", budget: String(seed.default_budget_thb),
+    ...initial, message: seed.sample_messages[sampleIndex]?.text ?? "", budget: String(seed.default_budget_thb),
   }));
   const initialRead = useRef<Promise<boolean> | null>(null);
   const queuedAnalysis = useRef(false);
@@ -115,11 +115,12 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
       const catalog = await api.state({ scenario }, signal);
       const sku = catalog.scenario.default_sku_id;
       const stock = catalog.skus.some(item => item.id === sku) ? catalog : await api.state({ scenario, sku }, signal);
-      apply({ type: "loaded", stock, catalog: stock === catalog ? catalog.skus : [...catalog.skus, ...stock.skus] });
+      apply({ type: "loaded", stock, message: stock.scenario.sample_messages[sampleIndex]?.text ?? "",
+        catalog: stock === catalog ? catalog.skus : [...catalog.skus, ...stock.skus] });
       ready = !signal.aborted;
     });
     return ready;
-  }, [run, scenario]);
+  }, [run, scenario, sampleIndex]);
   const readInitial = useCallback(() => initialRead.current ??= load(false), [load]);
   useEffect(() => {
     void readInitial();

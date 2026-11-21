@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { Check, MessageSquareText, Send } from "lucide-react";
 import { api, DeskApiError } from "@/lib/client/api";
 import type { ChatApply, ChatContext, InterpretResponse, WarehouseEvent } from "@/lib/domain/contracts";
@@ -22,6 +22,8 @@ type Line = {
 };
 type Opening = { receivedAt: string; warehouse: string | null; message: string };
 const sampleNames = { delay: c.sampleDelay, stock_found: c.sampleFound, resumed: c.sampleResumed };
+type ChatSample = typeof heroFollowups[number];
+export type ChatComposer = { prepare: (sample: ChatSample) => void };
 const receivedTime = new Intl.DateTimeFormat("th-TH", {
   timeZone: "Asia/Bangkok",
   hour: "2-digit",
@@ -36,6 +38,7 @@ function description(event: WarehouseEvent) {
 }
 
 export function WarehouseChat({
+  composer,
   scenario,
   incident,
   openings,
@@ -47,6 +50,7 @@ export function WarehouseChat({
   acceptOutage,
   applyReport,
 }: {
+  composer?: Ref<ChatComposer>;
   scenario: ScenarioId;
   incident: ChatContext["incident"];
   openings: Opening[];
@@ -67,6 +71,12 @@ export function WarehouseChat({
   const applying = useRef(false);
   const input = useRef<HTMLTextAreaElement>(null);
   const panel = useRef<HTMLElement>(null);
+  function prepare(sample: ChatSample) {
+    setSender(sample.sender);
+    setMessage(sample.text);
+    input.current?.focus();
+  }
+  useImperativeHandle(composer, () => ({ prepare }), []);
   useEffect(() => {
     if (!panel.current || !("IntersectionObserver" in window)) return;
     // Keep the mobile confirmation in its original slot while an operator is reading or editing chat.
@@ -260,12 +270,9 @@ export function WarehouseChat({
                   key={sample.type}
                   type="button"
                   data-chat-sample={sample.type}
+                  id={"chat-sample-" + sample.type}
                   disabled={locked}
-                  onClick={() => {
-                    setSender(sample.sender);
-                    setMessage(sample.text);
-                    input.current?.focus();
-                  }}
+                  onClick={() => prepare(sample)}
                 >
                   {sampleNames[sample.type].th}
                 </button>

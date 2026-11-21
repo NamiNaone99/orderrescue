@@ -1,5 +1,38 @@
 export interface CopyEntry { th: string; en: string }
 
+export const caseCopy = {
+  title: { th: "กรณีใช้งานสำหรับสาธิต", en: "Demo use cases" },
+  choose: { th: "เลือกกรณีใช้งาน", en: "Choose a case" },
+  all: { th: "เลือกจาก 5 กรณีใช้งาน", en: "Explore five use cases" },
+  launch: { th: "วิเคราะห์ตัวอย่างนี้", en: "Run this example" },
+  why: { th: "ดูเหตุผลที่เลือกคลังสำรอง", en: "Explore backup warehouses" },
+  frontier: { th: "เปรียบเทียบงบกับจำนวนที่ส่งทัน", en: "Compare recovery budgets" },
+  chooseSku: { th: "เลือก SKU ที่ต้องการวางแผน", en: "Choose an affected SKU" },
+  switchSku: { th: "วางแผนอีก SKU", en: "Plan the other SKU" },
+  delay: { th: "เปิดตัวอย่างรถ B ออกช้า", en: "Prepare the departure update" },
+  found: { th: "เปิดตัวอย่างคลัง C พบของเพิ่ม", en: "Prepare the stock update" },
+  result: { th: "ผลจากแผนปัจจุบัน", en: "Current plan" },
+  draft: { th: "ข้อความตัวอย่าง", en: "Example message" },
+  sampleUnavailable: { th: "ตัวอย่างนี้ยังไม่พร้อมในชุดข้อมูลที่เปิดอยู่", en: "This sample is unavailable in the current dataset." },
+  cases: {
+    flood: { title: { th: "น้ำท่วมและการกระจายสินค้าต่อเนื่อง", en: "Disaster recovery" },
+      context: { th: "เมื่อน้ำท่วมจนคลัง A หยิบของไม่ได้ คลังสำรองใดจะช่วยให้ออเดอร์ทันกำหนด?", en: "If floodwater stops picking at A, which backup warehouses can meet the deadlines?" },
+      scope: { th: "เหตุการณ์สมมติ ใช้ช่วงงดหยิบแทนผลของน้ำท่วม คำนวณจากสต็อกและเวลาพร้อมส่ง ส่วนเส้นทางน้ำท่วมและกำลังคนอยู่นอกขอบเขต", en: "Synthetic outage. Available stock and ready times represent the disruption; flood routes and staffing are outside the model." } },
+    campaign: { title: { th: "แคมเปญเลขคู่และคิวออเดอร์", en: "Double-day order surge" },
+      context: { th: "สมมติว่าเป็นวัน 11.11 ทีมต้องเลือกระหว่างงบเพิ่มกับจำนวนออเดอร์ที่ยังส่งทัน เมื่อชั้นวางของสินค้า 23084 ใช้ไม่ได้", en: "Imagine an 11.11 campaign. With the shelf for SKU 23084 unavailable, compare recovery spend against on-time orders." },
+      scope: { th: "ใช้ออเดอร์จริงหนึ่งวันจากร้านค้าในสหราชอาณาจักร สต็อกและกำหนดส่งเป็นข้อมูลจำลอง ชุดข้อมูลนี้ไม่ได้วัดยอดพุ่งในแคมเปญ", en: "One historical UK order day with simulated operations. A campaign surge is a presentation hypothesis." } },
+    shock: { title: { th: "สองแรงกระทบพร้อมกัน", en: "Demand and supply shock" },
+      context: { th: "สมมติว่ามีคิวออเดอร์ช่วงโปรโมชัน แล้วคลัง A แจ้งว่าหยิบสอง SKU ไม่ได้ ลองสลับสินค้าเพื่อดูว่าออเดอร์ใดต้องการคนช่วย", en: "During a hypothetical campaign backlog, A loses picking for two SKUs. Switch products to see which orders need help." },
+      scope: { th: "คิวมาจากออเดอร์จริงในสหราชอาณาจักร เหตุขัดข้องเป็นข้อความสมมติ ระบบวางแผนทีละ SKU โดยใช้สต็อกและเวลาจำลอง", en: "Historical UK orders, synthetic disruption, simulated stock and timing. Plans are computed one SKU at a time." } },
+    carrier: { title: { th: "ขนส่งรับสินค้าไม่ทัน", en: "Carrier capacity failure" },
+      context: { th: "รถสาขา B ต้องเลื่อนรอบรับ หลังเห็นแผนเดิมแล้ว ลองส่งข้อความแจ้งเวลาใหม่ ยืนยันการเปลี่ยนแปลง แล้ววางแผนอีกครั้ง", en: "B's pickup slips. Build the original plan, send the new departure time, confirm it, then replan." },
+      scope: { th: "ข้อมูลสมมติ ใช้เวลาพร้อมส่งแทนผลของรถออกช้า จำนวนรถ ความจุรถและเส้นทางอยู่นอกขอบเขต", en: "Synthetic. A later ready time represents a missed pickup. Vehicle counts, capacity and routes are outside the model." } },
+    shortage: { title: { th: "สินค้าสำคัญมีไม่พอ", en: "Critical SKU shortage" },
+      context: { th: "ออเดอร์สองรายการต้องการ SKU-X จากสต็อกจำกัด ถ้าคลัง C ตรวจนับแล้วพบของเพิ่ม ให้ดูจำนวนที่ว่างก่อนยืนยันและเปรียบเทียบแผนใหม่", en: "Two orders compete for SKU-X. C counts extra units; inspect free stock, confirm the update and compare the new plan." },
+      scope: { th: "กรณีและข้อความตรวจนับเป็นข้อมูลสมมติ ระบบใช้จำนวนที่ยังไม่ถูกจองและกำหนดส่งในการจัดสรร", en: "Synthetic case and stock count. Allocation uses uncommitted units and order deadlines." } },
+  },
+} as const;
+
 export const chatCopy = {
   title: { th: "อัปเดตจากคลัง", en: "Warehouse chat" },
   jump: { th: "มีข้อมูลใหม่จากคลัง?", en: "Open warehouse chat" },

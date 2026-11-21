@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, Check, Clock3, Compass, Play, RotateCcw, X } from "lucide-react";
-import { tourCopy as c } from "@/lib/copy";
+import { caseCopy, tourCopy as c } from "@/lib/copy";
 
 type Pair = { th: string; en: string };
 type Geometry = { top: number; left: number; width: number; height: number; x: number; y: number; mobile: boolean };
@@ -11,6 +11,7 @@ type Props = {
   step: number; target: string; body: Pair; error?: Pair; busy: boolean; notes: boolean; since: number; host: HTMLElement | null;
   phase: string; backDisabled: boolean; receipt: boolean; finished: boolean; action?: string;
   back: () => void; next: () => void; act: () => void; exit: () => void; restart: () => void; retry: () => void; resetFinish: () => void;
+  chooseCase: () => void;
 };
 
 function elapsed(start: number) {
@@ -121,6 +122,8 @@ export function TourOverlay(p: Props) {
         <button type="button" className="tour-next" disabled={p.busy} onClick={click(p.next)}>
           <span>{p.receipt ? c.finish.th : c.next.th}<small lang="en">{p.receipt ? c.finish.en : c.next.en}</small></span>{p.receipt ? <Check /> : <ArrowRight />}</button></>}
     </div>
+    {p.step === 1 && !p.host && <button type="button" className="text-action tour-case-choice" disabled={p.busy} onClick={p.chooseCase}>
+      {caseCopy.all.th}<ArrowRight aria-hidden size={15} /></button>}
     {p.host && p.notes && <Notes step={p.step} since={p.since} inline />}
   </section>;
   const region = document.getElementById("desk-announcements");
