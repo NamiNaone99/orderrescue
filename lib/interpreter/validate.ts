@@ -1,0 +1,108 @@
+import { interpretRequestSchema, type InterpretResponse } from "@/lib/domain/contracts";
+import { bangkokTimestamp } from "@/lib/domain/time";
+import type { Snapshot } from "@/lib/domain/types";
+import { rawInterpretationSchema } from "./schema";
+
+type WithoutInterpreter<T> = T extends InterpretResponse ? Omit<T, "interpreter"> : never;
+export type ValidatedInterpretation = WithoutInterpreter<InterpretResponse>;
+type Clarification = Extract<ValidatedInterpretation, { outcome: "clarification" }>;
+type About = Clarification["clarification"]["about"];
+
+const questions: Record<About, string> = {
+  warehouse: "คลังไหนหยิบสินค้าไม่ได้คะ",
+  sku: "สินค้าที่หยิบไม่ได้มีรหัส SKU อะไรบ้างคะ",
+  time: "คลังหยิบสินค้าไม่ได้ตั้งแต่กี่โมงถึงกี่โมงคะ",
+  conflict: "ข้อมูลในข้อความขัดกันค่ะ ข้อมูลใดถูกต้องคะ",
+  other: "ช่วยระบุคลัง รหัสสินค้า และช่วงเวลาที่หยิบไม่ได้อีกครั้งได้ไหมคะ",
+};
+
+export class InvalidMessageError extends Error {
+  readonly code = "INVALID_INPUT";
+  readonly status = 422;
+  constructor() {
+    super("Expected a message of 1 to 500 characters after trimming");
+    this.name = "InvalidMessageError";
+  }
+}
+
+export class InvalidOutputError extends Error {
+  constructor() {
+    super("Interpreter output did not match the required schema");
+    this.name = "InvalidOutputError";
+  }
+}
+
+export function checkMessage(message: string): string {
+  const result = interpretRequestSchema.shape.message.safeParse(message);
+  if (!result.success) throw new InvalidMessageError();
+  return result.data;
+}
+
+function clarify(about: About, issue?: string, question = questions[about]): Clarification {
+  return {
+    outcome: "clarification",
+    incident: null,
+    clarification: { about, question_th: question },
+    validation: { ok: !issue, issues: issue ? [issue] : [] },
+  };
+}
+
+const clock = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+// Booking requests belong to the operator confirmation flow (AC-22).
+const bookingCommand = /\b(?:book|reserve)\s+(?:all|every\w*|the|orders?|stock|sku)\b|(?:^|\s|ช่วย|กรุณา|โปรด)จอง/iu;
+
+function mentionsSku(message: string, id: string, name: string | undefined): boolean {
+  const escapedId = id.replace(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+  const wholeId = new RegExp("(^|[^a-z0-9_-])" + escapedId + "($|[^a-z0-9_-])", "i");
+  if (wholeId.test(message)) return true;
+  return name !== undefined && name.toLowerCase() !== id.toLowerCase() && message.toLowerCase().includes(name.toLowerCase());
+}
+
+export function validate(raw: unknown, message: string, snapshot: Snapshot): ValidatedInterpretation {
+  const text = checkMessage(message);
+  const parsed = rawInterpretationSchema.safeParse(raw);
+  if (!parsed.success) throw new InvalidOutputError();
+  const output = parsed.data;
+  const valid = { ok: true, issues: [] };
+  if (output.kind === "ignore") {
+    return { outcome: "ignore", incident: null, clarification: null, validation: valid };
+  }
+  if (output.kind === "clarification") {
+    const about = output.clarify_about ?? "other";
+    const question = output.clarification_question?.trim();
+    return question && /[ก-ฮ]/.test(question) ? clarify(about, undefined, question) : clarify(about, "V7");
+  }
+
+  const { warehouse, skus, window_start, window_end, evidence_quote } = output;
+  if (!warehouse?.trim()) return clarify("warehouse", "V1");
+  if (skus.length === 0) return clarify("sku", "V1");
+  if (!window_start || !window_end) return clarify("time", "V1");
+
+  const knownWarehouse = snapshot.warehouses.find(item => item.id === warehouse.trim().toUpperCase());
+  if (!knownWarehouse) return clarify("warehouse", "V2");
+  const knownSkus = new Map(snapshot.skus.map(sku => [sku.id, sku.name]));
+  const unknown = [...new Set(skus.filter(sku => !knownSkus.has(sku)))];
+  if (unknown.length) {
+    return clarify("sku", "V3", `ไม่พบรหัสสินค้า ${unknown.join(", ")} ในสถานการณ์นี้ รหัสสินค้าที่ถูกต้องคืออะไรคะ`);
+  }
+  if (!clock.test(window_start) || !clock.test(window_end) || window_start >= window_end) {
+    return clarify("time", "V4");
+  }
+  if (!evidence_quote?.trim() || !message.includes(evidence_quote)) return clarify("other", "V5");
+  if (bookingCommand.test(text)) return clarify("other", "AC-22");
+  if (skus.some(id => !mentionsSku(text, id, knownSkus.get(id)))) return clarify("sku", "V1");
+
+  const date = snapshot.scenario.now_at.slice(0, 10);
+  return {
+    outcome: "incident",
+    incident: {
+      warehouse_id: knownWarehouse.id,
+      sku_ids: skus,
+      window_start: bangkokTimestamp(date, window_start),
+      window_end: bangkokTimestamp(date, window_end),
+      evidence_quote,
+    },
+    clarification: null,
+    validation: valid,
+  };
+}
