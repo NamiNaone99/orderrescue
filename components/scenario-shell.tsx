@@ -4,6 +4,7 @@ import { createContext, Suspense, useContext, useEffect, useState, type ReactNod
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Scenario } from "@/lib/domain/types";
 import { Header } from "./header";
+import { ServiceHealthProvider } from "./mode-badges";
 
 export type ShellScenario = Pick<Scenario, "id" | "name_th" | "name_en" | "kind" | "now_at" | "default_sku_id">;
 
@@ -50,8 +51,8 @@ export function ScenarioShell({ scenarios, children }: ShellProps) {
   const [query, setQuery] = useState("");
   const id = new URLSearchParams(query).get("scenario") ?? "hero";
   const scenario = scenarios.find(item => item.id === id) ?? scenarios.find(item => item.id === "hero") ?? scenarios[0];
-  return <>
+  return <ServiceHealthProvider>
     <Suspense fallback={null}><QueryObserver onChange={setQuery} /></Suspense>
     <Shell scenarios={scenarios} scenario={scenario} query={query}>{children}</Shell>
-  </>;
+  </ServiceHealthProvider>;
 }

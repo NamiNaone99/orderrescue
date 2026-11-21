@@ -1,12 +1,12 @@
 import { Boxes, Check, LockKeyhole, Wallet } from "lucide-react";
 import { copy } from "@/lib/copy";
-import type { InterpretResponse, PlanResponse, StateResponse } from "@/lib/domain/contracts";
+import type { PlanRequest, PlanResponse, StateResponse } from "@/lib/domain/contracts";
 import { formatThb } from "@/lib/domain/money";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { validBudget } from "@/lib/client/use-desk";
 
 export function StockPanel({ stock, sku, incident, plan }: {
-  stock: StateResponse | null; sku: string; incident: InterpretResponse["incident"]; plan: PlanResponse | null;
+  stock: StateResponse | null; sku: string; incident?: Pick<PlanRequest["incident"], "warehouse_id" | "window_start" | "window_end"> | null; plan: PlanResponse | null;
 }) {
   const rows = stock?.stock.filter(row => row.sku_id === sku) ?? [];
   const used = new Set(plan?.joint.lines.map(line => line.warehouse_id));

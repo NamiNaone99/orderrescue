@@ -1,12 +1,26 @@
-import { ArrowRight, ChartNoAxesColumnIncreasing, Check, CircleCheck, CircleHelp, GitCompareArrows, ListOrdered, LoaderCircle } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ChartNoAxesColumnIncreasing, Check, CircleCheck, CircleHelp, GitCompareArrows, ListOrdered, LoaderCircle, RotateCcw } from "lucide-react";
 import { copy } from "@/lib/copy";
 import type { PlanResponse } from "@/lib/domain/contracts";
 import { formatThb } from "@/lib/domain/money";
 import { formatBangkokTime } from "@/lib/domain/time";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const humanReason = { NO_STOCK: copy.noStock, NO_ON_TIME_SOURCE: copy.noSource, OVER_BUDGET: copy.overBudget, NOT_SELECTED: copy.notSelected };
 
-export function PlanCompare({ plan, loading, booked, stale }: { plan: PlanResponse | null; loading: boolean; booked: boolean; stale: boolean }) {
+function SolverChip({ solver }: { solver: PlanResponse["solver"] }) {
+  const [open, setOpen] = useState(false);
+  if (solver.optimality === "proven") return <span className="solver-chip"><CircleCheck />{copy.proven.th}</span>;
+  return <Tooltip open={open} onOpenChange={setOpen}>
+    <TooltipTrigger className="solver-chip limited-search" closeOnClick={false} onClick={() => setOpen(true)}
+      aria-describedby={open ? "solver-limit" : undefined}><CircleHelp />{copy.bestFound.th}</TooltipTrigger>
+    <TooltipContent id="solver-limit" role="tooltip">{copy.bound.th} · {solver.node_limit.toLocaleString("th-TH")}</TooltipContent>
+  </Tooltip>;
+}
+
+export function PlanCompare({ plan, loading, booked, stale, reset, resetDisabled }: {
+  plan: PlanResponse | null; loading: boolean; booked: boolean; stale: boolean; reset?: () => void; resetDisabled: boolean;
+}) {
   const gain = plan && plan.joint.on_time - plan.first_come.on_time;
   const extra = plan && plan.joint.extra_cost_thb - plan.first_come.extra_cost_thb;
   return <section className={"desk-panel plan-panel" + (stale ? " stale-plan" : "")} aria-labelledby="compare-heading" aria-busy={loading}>
@@ -24,10 +38,12 @@ export function PlanCompare({ plan, loading, booked, stale }: { plan: PlanRespon
         <small>{joint ? copy.jointExplain.th : copy.firstExplain.th}</small>
       </article>;
     })}</div>
-    {plan ? <><div className="comparison-notes"><span className="solver-chip" title={plan.solver.optimality === "best_found" ? copy.bound.th + " · " + plan.solver.node_limit : undefined}><CircleCheck />{plan.solver.optimality === "proven" ? copy.proven.th : copy.bestFound.th}</span>
+    {plan ? <><div className="comparison-notes"><SolverChip solver={plan.solver} />
       {gain !== null && gain > 0 && <span className="delta-chip">+{gain} {copy.onTimeGain.th}</span>}
       {extra !== null && extra !== 0 && <span className="delta-chip">{extra > 0 ? "+" : ""}{formatThb(extra)}</span>}</div>
-      <OrderTable plan={plan} booked={booked} /></> : <p className="plan-hint"><ArrowRight size={16} />{loading ? copy.planning.th : copy.hint.th}</p>}
+      <OrderTable plan={plan} booked={booked} />
+      {!plan.affected.length && reset && <button type="button" className="outline-action" disabled={resetDisabled} onClick={reset}><RotateCcw />{copy.reset.th}</button>}
+      </> : <p className="plan-hint"><ArrowRight size={16} />{loading ? copy.planning.th : copy.hint.th}</p>}
   </section>;
 }
 

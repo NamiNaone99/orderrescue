@@ -24,8 +24,8 @@ function BookingLines({ lines }: { lines: ReservationRequest["lines"] }) {
         <td><b>{copy.warehouse.th} {row.warehouse_id}</b></td><td>{row.qty}</td><td>{formatThb(row.unit_cost_thb)}</td><td>r{row.expected_revision}</td></tr>)}</tbody></table>;
 }
 
-export function ConfirmDialog({ input, plan, busy, error, cancel, book, replan }: {
-  input: ReservationRequest | null; plan: PlanResponse | null; busy: boolean; error: DeskApiError | null;
+export function ConfirmDialog({ input, plan, busy, degraded, error, cancel, book, replan }: {
+  input: ReservationRequest | null; plan: PlanResponse | null; busy: boolean; degraded: boolean; error: DeskApiError | null;
   cancel: () => void; book: () => void; replan: () => void;
 }) {
   const refused = !!error && !["INTERNAL", "RATE_LIMITED", "STORAGE_UNAVAILABLE"].includes(error.code);
@@ -37,8 +37,9 @@ export function ConfirmDialog({ input, plan, busy, error, cancel, book, replan }
       {input && plan && <><BookingLines lines={input.lines} /><div className="total-line"><span>{copy.total.th}</span><b>{formatThb(plan.joint.extra_cost_thb)}</b></div>
         {plan.joint.needs_human.length > 0 && <p>{copy.needsHuman.th} {plan.joint.needs_human.map(x => "#" + x.order_id).join(", ")}</p>}</>}
       {error && <ErrorNotice booking={refused} error={error} />}
+      {degraded && <p role="status" className="danger-note">{copy.degraded.th}</p>}
       <div className="dialog-actions"><button className="outline-action" disabled={busy} onClick={cancel}>{copy.cancel.th}</button>
-        <button className="primary-action" disabled={busy} onClick={refused ? replan : book}>
+        <button className="primary-action" disabled={busy || (degraded && !refused)} onClick={refused ? replan : book}>
           {busy ? <LoaderCircle className="spin" /> : <Check />}{busy ? copy.booking.th : refused ? copy.replan.th : copy.confirm.th}</button></div>
     </DialogContent>
   </Dialog>;
@@ -55,7 +56,7 @@ export function Receipt({ result, plan, newIncident, busy }: { result: Reservati
     try { await navigator.clipboard.writeText(plain); setNotice(copy.copied.th); }
     catch { setNotice(copy.copyFailed.th); }
   }
-  return <section id="desk-receipt" className="desk-panel receipt-panel" tabIndex={-1} aria-labelledby="receipt-heading">
+  return <section id="desk-receipt" className="desk-panel receipt-panel" tabIndex={0} aria-labelledby="receipt-heading">
     <div className="panel-heading"><span className="panel-icon"><TicketCheck /></span><div><h2 id="receipt-heading">{copy.receipt.th}</h2><span lang="en">{copy.receipt.en}</span></div>
       <span className="receipt-badge"><Check />{copy.booked.th}</span></div>
     <div className="receipt-meta"><span title={receipt.id}>{copy.receiptId.th} <b>{receipt.id.slice(0,8)}</b></span>

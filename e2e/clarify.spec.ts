@@ -3,8 +3,10 @@ import { copy } from "../lib/copy";
 import { interpretResponseSchema } from "../lib/domain/contracts";
 import { resetDemo } from "./helpers";
 
-test("an ambiguous warehouse message asks for clarification and leaves no plan to book", async ({ page, request }) => {
+test("clarification leaves no plan until the operator enters a valid incident manually", async ({ page, request }) => {
   await resetDemo(request);
+  let interpretations = 0;
+  page.on("request", req => { if (new URL(req.url()).pathname === "/api/interpret") interpretations++; });
   await page.goto("/?scenario=hero");
   await page.getByRole("button", { name: "ข้อมูลไม่ครบ", exact: true }).click();
   await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("ของตัวนั้นหยิบไม่ได้นะบ่ายนี้");
@@ -20,4 +22,40 @@ test("an ambiguous warehouse message asks for clarification and leaves no plan t
   await expect(page.getByRole("region", { name: copy.incident.th })).toHaveCount(0);
   await expect(page.getByRole("region", { name: copy.compare.th }).getByRole("table")).toHaveCount(0);
   await expect(page.getByRole("button", { name: copy.confirmRows.th, disabled: false })).toHaveCount(0);
+  await expect(card).toBeFocused();
+  await expect(page.locator("#desk-announcements")).toContainText(answer.clarification.question_th);
+  await card.getByRole("button", { name: copy.manualShort.th, exact: true }).click();
+  const form = page.getByRole("form", { name: copy.manualEntry.th });
+  const warehouse = form.getByLabel(copy.warehouse.th, { exact: true });
+  const sku = form.getByRole("combobox", { name: /SKU/ });
+  await expect(warehouse).toBeFocused();
+  await warehouse.selectOption("A");
+  await sku.fill("unknown-sku");
+  await form.getByLabel(copy.windowStart.th).fill("13:00");
+  await form.getByLabel(copy.windowEnd.th).fill("12:59");
+  await form.getByRole("button", { name: copy.manualPlan.th }).click();
+  await expect(sku).toBeFocused();
+  await expect(sku).toHaveAccessibleDescription(copy.manualSku.th);
+  await expect(form.getByLabel(copy.windowEnd.th)).toHaveAccessibleDescription(copy.invalidWindow.th);
+  await expect(page.getByRole("region", { name: copy.compare.th }).getByRole("table")).toHaveCount(0);
+  await sku.fill("SKU-X");
+  await form.getByLabel(copy.windowEnd.th).fill("18:00");
+  const planning = page.waitForRequest(req => new URL(req.url()).pathname === "/api/plan");
+  await form.getByRole("button", { name: copy.manualPlan.th }).click();
+  expect((await planning).postDataJSON()).toEqual({
+    scenario: "hero", budget_thb: 100, incident: { warehouse_id: "A", sku_id: "SKU-X",
+      window_start: "2026-11-21T13:00:00+07:00", window_end: "2026-11-21T18:00:00+07:00" },
+  });
+  await expect(page.getByRole("region", { name: copy.manualEntered.th })).toBeFocused();
+  const first = page.getByRole("article", { name: copy.firstCome.th });
+  await expect(first).toContainText("1/2");
+  await expect(first).toContainText("฿32");
+  await expect(page.locator("#desk-announcements")).toContainText("จัดร่วมกัน ทันเวลา 2 จาก 2 ค่าใช้จ่ายเพิ่ม 88 บาท");
+  await expect(page.getByRole("button", { name: copy.confirmRows.th })).toBeEnabled();
+  await page.getByRole("button", { name: "฿87", exact: true }).click();
+  await expect(page.getByRole("article", { name: copy.joint.th })).toContainText("1/2");
+  await page.getByRole("button", { name: "คลัง B แจ้งของพร้อมช้าเป็น 14:30" }).click();
+  await page.getByRole("button", { name: copy.replan.th }).click();
+  await expect(page.locator(".order-table tbody tr").filter({ hasText: "#101" })).toContainText(copy.noSource.th);
+  expect(interpretations).toBe(1);
 });

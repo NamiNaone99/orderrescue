@@ -7,16 +7,16 @@ import { api, DeskApiError } from "./api";
 import { planChanges, type PlanChange } from "./plan-changes";
 
 type Operation = "load" | "interpret" | "plan" | "book" | "reset" | "refresh" | "event";
-type Incident = Extract<InterpretResponse, { outcome: "incident" }>["incident"];
+type IncidentWindow = Pick<PlanRequest["incident"], "warehouse_id" | "window_start" | "window_end">;
 type DispatchState = {
   stock: StateResponse | null; catalog: StateResponse["skus"]; message: string; evidenceMessage: string;
-  interpretation: InterpretResponse | null; sku: string; budget: string;
+  interpretation: InterpretResponse | null; manualIncident: PlanRequest["incident"] | null; sku: string; budget: string;
   plan: PlanResponse | null; plannedInput: PlanRequest | null; confirmation: ReservationRequest | null;
   baseline: StateResponse | null; stale: { changes: PlanChange[]; refusal?: DeskApiError } | null;
   booked: ReservationResponse | null; busy: Operation | null; error: { operation: Operation; api: DeskApiError } | null;
 };
 const initial: DispatchState = {
-  stock: null, catalog: [], message: "", evidenceMessage: "", interpretation: null, sku: "", budget: "",
+  stock: null, catalog: [], message: "", evidenceMessage: "", interpretation: null, manualIncident: null, sku: "", budget: "",
   plan: null, plannedInput: null, confirmation: null, baseline: null, stale: null, booked: null, busy: "load", error: null,
 };
 type Action =
@@ -25,6 +25,7 @@ type Action =
   | { type: "loaded"; stock: StateResponse; catalog: StateResponse["skus"] }
   | { type: "edit"; message: string }
   | { type: "interpreted"; answer: InterpretResponse; message: string; sku: string }
+  | { type: "manual"; incident: PlanRequest["incident"] }
   | { type: "selection"; budget: string; sku: string }
   | { type: "planned"; plan: PlanResponse; input: PlanRequest; stock: StateResponse }
   | { type: "dialog"; confirmation: ReservationRequest | null }
@@ -52,13 +53,15 @@ function reducer(s: DispatchState, a: Action): DispatchState {
         return { ...s, busy: null, confirmation: null, stale: { changes: s.stale?.changes ?? [], refusal: a.error }, error: null };
       }
       return { ...s, busy: null, error: { operation: a.op, api: a.error },
-        confirmation: a.op === "book" && a.error.status === 422 ? null : s.confirmation };
+        confirmation: a.op === "book" && (a.error.status === 422 || a.error.status === 429) ? null : s.confirmation };
     }
     case "loaded": return { ...initial, stock: a.stock, catalog: a.catalog, busy: null,
       message: a.stock.scenario.sample_messages[0]?.text ?? "", budget: String(a.stock.scenario.default_budget_thb) };
-    case "edit": return { ...s, message: a.message, interpretation: null, plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
-    case "interpreted": return { ...s, interpretation: a.answer, evidenceMessage: a.message, sku: a.sku,
+    case "edit": return { ...s, message: a.message, interpretation: null, manualIncident: null, plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
+    case "interpreted": return { ...s, interpretation: a.answer, manualIncident: null, evidenceMessage: a.message, sku: a.sku,
       plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
+    case "manual": return { ...s, manualIncident: a.incident, interpretation: null, sku: a.incident.sku_id,
+      plan: null, plannedInput: null, baseline: null, booked: null, confirmation: null, stale: null, busy: null, error: null };
     case "selection": return { ...s, budget: a.budget, sku: a.sku, plannedInput: null, busy: null, error: null };
     case "planned": return updateStock({ ...s, plan: a.plan, plannedInput: a.input, baseline: a.stock, stale: null, busy: null, error: null }, a.stock);
     case "dialog": return s.stale ? s : { ...s, confirmation: a.confirmation, error: null };
@@ -97,7 +100,7 @@ export function useDesk(scenario: ScenarioId) {
     const catalog = await api.state({ scenario }, signal);
     const sku = catalog.scenario.default_sku_id;
     const stock = catalog.skus.some(item => item.id === sku) ? catalog : await api.state({ scenario, sku }, signal);
-    apply({ type: "loaded", stock, catalog: catalog.skus });
+    apply({ type: "loaded", stock, catalog: stock === catalog ? catalog.skus : [...catalog.skus, ...stock.skus] });
   }), [run, scenario]);
   useEffect(() => { void load(false); return cancel; }, [load, cancel]);
 
@@ -131,7 +134,8 @@ export function useDesk(scenario: ScenarioId) {
     return () => { stop(); document.removeEventListener("visibilitychange", syncVisibility); };
   }, [s.plan, s.plannedInput, s.busy, s.confirmation, scenario]);
 
-  function makePlan(incident: Incident, sku: string, budget: string) {
+  const incident = s.manualIncident ?? s.interpretation?.incident;
+  function makePlan(incident: IncidentWindow, sku: string, budget: string) {
     if (!sku || !validBudget(budget)) return;
     const input: PlanRequest = { scenario, budget_thb: Number(budget), incident: { warehouse_id: incident.warehouse_id, sku_id: sku,
       window_start: incident.window_start, window_end: incident.window_end } };
@@ -140,6 +144,12 @@ export function useDesk(scenario: ScenarioId) {
       const stock = await api.state({ scenario, sku }, signal);
       apply({ type: "planned", plan, input, stock });
     });
+  }
+  function planManually(entered: PlanRequest["incident"]) {
+    if (s.confirmation || s.busy === "book" || s.busy === "reset" || s.busy === "event") return;
+    cancel();
+    dispatch({ type: "manual", incident: entered });
+    return makePlan(entered, entered.sku_id, s.budget);
   }
   function analyse() {
     if (s.stale) return;
@@ -164,7 +174,6 @@ export function useDesk(scenario: ScenarioId) {
     if (s.stale) return;
     cancel();
     dispatch({ type: "selection", sku, budget });
-    const incident = s.interpretation?.incident;
     if (!incident || !validBudget(budget)) return;
     if (debounce) timer.current = setTimeout(() => { void makePlan(incident, sku, budget); }, 300);
     else void makePlan(incident, sku, budget);
@@ -190,7 +199,7 @@ export function useDesk(scenario: ScenarioId) {
     });
   }
   function replan() {
-    if (s.interpretation?.incident) return makePlan(s.interpretation.incident, s.sku, s.budget);
+    if (incident) return makePlan(incident, s.sku, s.budget);
   }
   const bookingActive = useRef(false);
   async function book() {
@@ -213,12 +222,12 @@ export function useDesk(scenario: ScenarioId) {
       case "interpret": return analyse();
       case "event": if (lastEvent.current) return applyEvent(lastEvent.current); break;
       case "plan": case "book":
-        if (s.interpretation?.incident) {
+        if (incident) {
           dispatch({ type: "dialog", confirmation: null });
-          return makePlan(s.interpretation.incident, s.sku, s.budget);
+          return makePlan(incident, s.sku, s.budget);
         }
     }
   }
-  return { s, edit, select, analyse, retry, book, openDialog, applyEvent, replan,
+  return { s, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan,
     closeDialog: () => dispatch({ type: "dialog", confirmation: null }), startAgain: () => load(true) };
 }

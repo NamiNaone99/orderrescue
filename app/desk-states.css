@@ -1,0 +1,22 @@
+.manual-form { display: grid; gap: 12px; }
+.manual-form label, .manual-form .danger-note { display: block; }
+.manual-form label { margin-bottom: 3px; font-weight: 600; }
+.manual-form input, .manual-form select {
+  width: 100%; min-width: 0; min-height: 44px; padding: 6px 9px;
+  border: 1px solid #849b90; border-radius: 6px; background: var(--card); font: inherit;
+}
+.manual-form [aria-invalid="true"] { border-color: var(--danger); }
+.manual-form .danger-note { color: var(--danger); }
+.manual-times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.manual-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.manual-link, .limited-search { min-height: 44px; }
+.manual-link { margin-top: 4px; }
+.clarification .manual-link { margin-inline-start: 8px; }
+.fallback-note { padding: 8px 12px; border-inline-start: 3px solid var(--info); background: var(--info-bg); border-radius: 4px; overflow-wrap: anywhere; }
+.storage-banner { border: 1px solid var(--danger); }
+@media (max-width: 767px) {
+  .orders .order-scroll { overflow: visible; max-height: none; }
+  .orders .order-table { display: block; }
+  .orders .order-table tbody { gap: 12px; }
+  .orders .order-table tbody tr { padding: 12px; gap: 8px 12px; }
+}
