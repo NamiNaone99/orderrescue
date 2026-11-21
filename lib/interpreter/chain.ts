@@ -7,15 +7,17 @@ import { checkMessage, InvalidOutputError, validate } from "./validate";
 
 export type InterpreterResult =
   | { status: "parsed"; output: unknown }
-  | { status: "refusal" | "incomplete" | "missing_output" };
+  | { status: "refusal" | "incomplete" | "missing_output" | "timeout" | "authentication" | "invalid_output" | "error" };
 
 export interface InterpreterClient {
   name: `openai:${string}`;
   run(request: { systemPrompt: string; message: string; signal: AbortSignal }): Promise<InterpreterResult>;
 }
 
+export type InterpreterOptions = { clients?: readonly InterpreterClient[]; allowAttempt?: () => boolean };
+
 type Attempt = InterpretResponse["interpreter"]["attempts"][number];
-const timeoutMs = 9_000;
+export const INTERPRETER_TIMEOUT_MS = 9_000;
 
 async function runClient(client: InterpreterClient, systemPrompt: string, message: string) {
   const controller = new AbortController();
@@ -25,7 +27,7 @@ async function runClient(client: InterpreterClient, systemPrompt: string, messag
       const error = new DOMException("Interpreter deadline exceeded", "TimeoutError");
       reject(error);
       controller.abort(error);
-    }, timeoutMs);
+    }, INTERPRETER_TIMEOUT_MS);
   });
   try {
     return await Promise.race([client.run({ systemPrompt, message, signal: controller.signal }), deadline]);
@@ -45,7 +47,7 @@ function failureReason(error: unknown) {
 export async function interpret(
   message: string,
   snapshot: Snapshot,
-  deps: { clients?: readonly InterpreterClient[]; allowAttempt?: () => boolean } = {},
+  deps: InterpreterOptions = {},
 ): Promise<InterpretResponse> {
   const started = performance.now();
   const checkedMessage = checkMessage(message);
@@ -69,20 +71,32 @@ export async function interpret(
         rateLimited = true;
         break;
       }
+      const attemptStart = performance.now();
+      function logCall(outcome: string, issues: string[] = []) {
+        console.info(JSON.stringify({
+          model: client.name.slice("openai:".length),
+          latency_ms: Math.round(performance.now() - attemptStart),
+          outcome, validation_issues: issues, message_length: checkedMessage.length,
+        }));
+      }
       try {
         const response = await runClient(client, systemPrompt, checkedMessage);
         if (response.status !== "parsed") {
+          logCall(response.status);
           attempts.push({ name: client.name, ok: false, reason: response.status });
           continue;
         }
         const answer = validate(response.output, message, snapshot);
+        logCall(answer.outcome, answer.validation.issues);
         if (answer.validation.issues.includes("V5")) {
           attempts.push({ name: client.name, ok: false, reason: "V5" });
           continue;
         }
         return finish(answer, client.name);
       } catch (error) {
-        attempts.push({ name: client.name, ok: false, reason: failureReason(error) });
+        const reason = failureReason(error);
+        logCall(reason);
+        attempts.push({ name: client.name, ok: false, reason });
       }
     }
   }
