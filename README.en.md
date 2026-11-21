@@ -74,7 +74,9 @@ Local checks used Windows, Node 22.20.0, memory storage and offline interpretati
 | `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
 | `pnpm eval --live --split heldout` with the human corpus | `run by the team: <to fill>` |
 
-On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 opt-in hosted checks were skipped, 51 domain checks passed in each time zone (UTC and Asia/Bangkok), and all 29 Chromium cases passed in 3.6 minutes. The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined local CHAT and INSIGHTS checks](docs/codex-log/CHAT.md) · [Live chat and booking checks](docs/codex-log/CHAT.md#post-merge-production-verification)
+On the combined CHAT and INSIGHTS production build, 341 local tests passed, 22 opt-in hosted checks were skipped, 51 domain checks passed in each time zone (UTC and Asia/Bangkok), and all 29 Chromium cases passed in 3.6 minutes. On the T21 release at `8411f1e`, 347 local tests passed, 22 hosted checks were skipped and 29 Chromium cases passed. [T21 release verification](docs/codex-log/README-TH.md)
+
+The Supabase adapter passed all 22 contracts against local PostgreSQL. The 19 hosted contracts in the table above are the historical T15 run. [Combined local CHAT and INSIGHTS checks](docs/codex-log/CHAT.md) · [Live chat and booking checks](docs/codex-log/CHAT.md#post-merge-production-verification)
 
 ## Data and evaluation
 
@@ -91,14 +93,28 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 ## Operations
 
 1. **Reset.** The desk's Reset action restores the selected seed and removes its reservations. Hero allows six resets per minute per IP. Real-day and all-scenario resets require the token.
-2. **Smoke.** Run `pnpm smoke` locally. For a deployment, point `BASE_URL` at the chosen URL and allow the smoke to reset and book the shared hero. Deployment evidence is `run by the team: <to fill>`.
+2. **Smoke.** Run `pnpm smoke` locally. The deployed workflow checks each Vercel success for this project and runs the four shared hero checks. Choose a time between presentations. The suite restores the synthetic hero before it starts and after it finishes, including after a failed check.
 3. **Rollback.** In Vercel, use Instant Rollback to return traffic to the last deployment that passed smoke. Database schema corrections use a forward migration. [Deployment runbook](docs/DEPLOY_PLAN.md) · [Vercel rollback](https://vercel.com/docs/instant-rollback)
 4. **Service fallback.** The live interpreter tries its second model after a failed attempt, then uses the offline reader. A depleted live quota also selects offline. A degraded database can serve memory reads and refuses writes.
 5. **Demo fallback.** Use healthy production, then offline interpretation, then explicitly selected memory storage. On the fallback laptop, run `pnpm build` followed by `pnpm start` in memory/offline mode. A team-prepared recording is the final option when available.
 
+To run the production smoke from PowerShell, set `BASE_URL` and the existing reset token in the local shell.
+
+```powershell
+$env:BASE_URL='https://orderrescue.vercel.app'; $env:DEMO_RESET_TOKEN='<token>'; pnpm smoke
+```
+
+This PowerShell command restores only the synthetic hero.
+
+```powershell
+'{"scenario":"hero"}' | curl.exe --silent --show-error --fail -X POST "https://orderrescue.vercel.app/api/demo/reset" -H "Content-Type: application/json" --data-binary "@-"
+```
+
+For a manual run of **Deployed smoke** in GitHub Actions, use the canonical production URL on `main`. Automatic runs accept successful deployments reported by Vercel for this project. It checks the deployment's health and commit before changing hero. Reviewed main-line deployments can use the repository's optional Vercel protection bypass. Unreviewed previews run the main-branch test harness, which uses the public hero endpoint and receives neither the reset token nor the protection bypass. A protected, unreviewed preview reports an access failure. [Deployment checks](docs/codex-log/T21.md) · [Vercel repository dispatch](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events)
+
 Plans and reservations share a per-IP limit of 20 requests in a burst, refilling at one request per second on each server instance. JSON bodies above 16,384 bytes receive HTTP 413. Interpreter quotas and public hero resets have their own limits.
 
-The team confirms its submission URL in `Live: <to fill>`.
+The team records its deployment sign-off in `run by the team: <to fill>` and its submission URL in `Live: <to fill>`.
 
 ## Limitations and scope
 

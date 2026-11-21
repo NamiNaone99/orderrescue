@@ -49,6 +49,6 @@ After [PR #27](https://github.com/NamiNaone99/orderrescue/pull/27) merged at `7e
 | Book the ordinary joint hero plan | First-come served 1/2 for ฿32. Joint served 2/2 for ฿88. The reservation returned HTTP 201 with receipt `2c7e897a-72c9-456e-8ec2-0fbd30349f88` for #101/B ×8 and #102/C ×8. |
 | Report **รถสาขา B ออกได้บ่ายสองครึ่ง** | The preview showed 14:30 and stock stayed unchanged until confirmation. The confirmed report returned HTTP 200 and disabled booking of the stale plan. Replanning served 1/2 for ฿32. |
 | Report four additional SKU-X units at C | Confirmation changed C's quantity from 8 to 12. Replanning served 2/2 for ฿88. |
-| Report that A resumed picking at 13:30 | Replanning served 2/2 for ฿0. The #101 explanation displayed `คลัง A · เลือกคลังนี้ · พร้อม 13:30 · ฿0`; the frontier showed `฿0 · 2/2`. |
+| Report that A resumed picking at 13:30 | Replanning served 2/2 for ฿0. The #101 explanation displayed `คลัง A · เลือกคลังนี้ · พร้อม 13:30 · ฿0` and the frontier showed `฿0 · 2/2`. |
 
 All three reports used `openai:gpt-6-luna`. Each preview left stock unchanged, each confirmation returned HTTP 200, and the desk blocked booking of the stale plan. Cleanup restored the hero's open orders and initial stock revisions, with zero reservations remaining.
