@@ -37,10 +37,33 @@ function compareKeys(a: string, b: string): number {
 }
 
 /** Version the entire scenario even when a caller requests a single SKU. */
-export function stateVersion(snapshot: Pick<Snapshot, "stock" | "orders">): string {
+export function stateVersion(snapshot: {
+  stock: Pick<Snapshot["stock"][number], "warehouse_id" | "sku_id" | "revision">[];
+  orders: Pick<Snapshot["orders"][number], "id" | "status">[];
+}): string {
   const stock = snapshot.stock.map(({ warehouse_id, sku_id, revision }) => [warehouse_id, sku_id, revision] as const)
     .sort((a, b) => compareKeys(a[0], b[0]) || compareKeys(a[1], b[1]));
   const orders = snapshot.orders.map(({ id, status }) => [id, status] as const)
     .sort((a, b) => compareKeys(a[0], b[0]));
   return createHash("sha256").update(JSON.stringify({ stock, orders })).digest("hex");
+}
+
+/** Filter after hashing the whole scenario so a filtered read carries the same version. */
+export function filterSnapshot<Id extends string>(snapshot: Omit<StoreSnapshot<Id>, "state_version">, opts: SnapshotOptions): StoreSnapshot<Id> {
+  const state_version = stateVersion(snapshot);
+  if (opts.sku === undefined && !opts.openSkusOnly) return { ...snapshot, state_version };
+  if (opts.sku !== undefined && !snapshot.skus.some(sku => sku.id === opts.sku)) {
+    throw new StoreError("INVALID_INPUT", "Unknown SKU in this scenario");
+  }
+  const open = new Set(snapshot.orders.filter(order => order.status === "open").map(order => order.id));
+  const visible = opts.sku !== undefined ? new Set([opts.sku])
+    : new Set(snapshot.order_lines.filter(line => open.has(line.order_id)).map(line => line.sku_id));
+  const order_lines = snapshot.order_lines.filter(line => visible.has(line.sku_id));
+  const orderIds = new Set(order_lines.map(line => line.order_id));
+  return {
+    ...snapshot, state_version, order_lines,
+    skus: snapshot.skus.filter(sku => visible.has(sku.id)),
+    stock: snapshot.stock.filter(row => visible.has(row.sku_id)),
+    orders: snapshot.orders.filter(order => orderIds.has(order.id)),
+  };
 }
