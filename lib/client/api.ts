@@ -4,6 +4,7 @@ import {
   interpretResponseSchema, planResponseSchema, reservationResponseSchema, stateResponseSchema,
   type DemoEventRequest, type DemoResetRequest, type ErrorCode, type InterpretRequest, type PlanRequest,
   type ReservationRequest, type StateRequest,
+  chatApplyResponseSchema, type ChatApply,
 } from "@/lib/domain/contracts";
 
 export class DeskApiError extends Error {
@@ -49,6 +50,7 @@ export const api = {
     return request("state?" + query, stateResponseSchema, { signal });
   },
   interpret: (input: InterpretRequest, signal?: AbortSignal) => request("interpret", interpretResponseSchema, post(input, signal)),
+  applyReport: (input: ChatApply, signal?: AbortSignal) => request("chat/apply", chatApplyResponseSchema, post(input, signal)),
   plan: (input: PlanRequest, signal?: AbortSignal) => request("plan", planResponseSchema, post(input, signal)),
   reserve: (input: ReservationRequest, signal?: AbortSignal) => request("reservations", reservationResponseSchema, post(input, signal)),
   event: (input: DemoEventRequest, signal?: AbortSignal) => request("demo/event", demoEventResponseSchema, post(input, signal)),

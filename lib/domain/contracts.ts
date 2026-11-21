@@ -72,6 +72,7 @@ export const stockRowSchema = z.strictObject({
   ready_at: timestamp,
   extra_cost_per_unit_thb: nonnegativeInteger,
   revision: nonnegativeInteger,
+  report_revision: nonnegativeInteger.optional(),
 }).refine((row) => row.committed <= row.on_hand, {
   path: ["committed"], message: "Committed stock exceeds stock on hand",
 });
@@ -116,7 +117,7 @@ export const stateResponseSchema = z.strictObject({
   state_version: text,
 });
 
-export const interpretRequestSchema = z.strictObject({
+const messageRequestSchema = z.strictObject({
   scenario: scenarioIdSchema,
   message: z.string().trim().min(1).max(500),
 });
@@ -126,6 +127,31 @@ function isOrderedWindow(window: { window_start: string; window_end: string }) {
   return Date.parse(window.window_start) < Date.parse(window.window_end);
 }
 const windowError = { path: ["window_end"], message: "Window end must follow its start" };
+export const planIncidentSchema = z.strictObject({
+  warehouse_id: warehouseIdSchema,
+  sku_id: text,
+  ...windowFields,
+}).refine(isOrderedWindow, windowError);
+
+export const chatContextSchema = z.strictObject({ incident: planIncidentSchema.nullable() });
+export const interpretRequestSchema = messageRequestSchema.extend({ chat: chatContextSchema.optional() });
+const eventTarget = { warehouse_id: warehouseIdSchema, sku_id: text };
+export const resumedEventSchema = z.strictObject({
+  type: z.literal("resumed"), ...eventTarget, at: timestamp, ...windowFields,
+}).refine(isOrderedWindow, windowError);
+export const warehouseEventSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("delay"), ...eventTarget, at: timestamp }),
+  z.strictObject({ type: z.literal("stock_found"), ...eventTarget, quantity: quantity.max(10000) }),
+  resumedEventSchema,
+]);
+export type WarehouseEvent = z.infer<typeof warehouseEventSchema>;
+export type ChatContext = z.infer<typeof chatContextSchema>;
+export const chatApplySchema = z.strictObject({
+  scenario: scenarioIdSchema, key: z.uuid(), message: messageRequestSchema.shape.message,
+  evidence_quote: text, event: warehouseEventSchema, chat: chatContextSchema,
+});
+export type ChatApply = z.infer<typeof chatApplySchema>;
+export const chatApplyResponseSchema = z.strictObject({ applied: z.literal(true), replayed: z.boolean() });
 const interpretedIncident = z.strictObject({
   warehouse_id: warehouseIdSchema,
   sku_ids: z.array(text).min(1),
@@ -147,8 +173,13 @@ const interpretMetadata = {
 };
 export const interpretResponseSchema = z.discriminatedUnion("outcome", [
   z.strictObject({
+    ...interpretMetadata, outcome: z.literal("event"), event: warehouseEventSchema, evidence_quote: text,
+    incident: z.null(), clarification: z.null(),
+  }),
+  z.strictObject({
     ...interpretMetadata,
     outcome: z.literal("incident"),
+    event_type: z.literal("outage").optional(),
     incident: interpretedIncident,
     clarification: z.null(),
   }),
@@ -169,12 +200,6 @@ export const interpretResponseSchema = z.discriminatedUnion("outcome", [
   }),
 ]);
 
-export const planIncidentSchema = z.strictObject({
-  warehouse_id: warehouseIdSchema,
-  sku_id: text,
-  ...windowFields,
-}).refine(isOrderedWindow, windowError);
-
 export const planRequestSchema = z.strictObject({
   scenario: scenarioIdSchema,
   incident: planIncidentSchema,
@@ -191,6 +216,8 @@ export const strategyResultSchema = z.strictObject({
   })),
 });
 export const planResponseSchema = z.strictObject({
+  effective_window_end: timestamp.optional(),
+  report_revisions: z.array(z.strictObject({ warehouse_id: warehouseIdSchema, sku_id: text, revision: nonnegativeInteger })).optional(),
   affected: z.array(z.strictObject({
     order_id: text, qty: quantity, received_at: timestamp, deadline_at: timestamp,
   })),

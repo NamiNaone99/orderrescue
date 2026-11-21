@@ -1,14 +1,19 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import {
-  reservationRequestSchema, type DemoEventResponse, type ReservationRequest, type ReservationResponse,
+  reservationRequestSchema, warehouseEventSchema, type DemoEventResponse, type ReservationRequest, type ReservationResponse, type WarehouseEvent,
 } from "@/lib/domain/contracts";
 import type { Reservation, ScenarioId, Snapshot } from "@/lib/domain/types";
 import { scenarioRegistry } from "@/lib/scenarios";
 import { filterSnapshot, stateVersion, StoreError, type SnapshotOptions, type Store, type StoreSnapshot } from "./types";
 
 const seeds = new Map(Object.values(scenarioRegistry).map(seed => [seed.snapshot.scenario.id, seed]));
-const runtime = globalThis as typeof globalThis & { orderRescueMemorySnapshots?: Map<ScenarioId, Snapshot> };
+const runtime = globalThis as typeof globalThis & {
+  orderRescueMemorySnapshots?: Map<ScenarioId, Snapshot>;
+  orderRescueReports?: Map<ScenarioId, Map<string, WarehouseEvent>>;
+};
+const reports = runtime.orderRescueReports ??= new Map<ScenarioId, Map<string, WarehouseEvent>>();
 const snapshots = runtime.orderRescueMemorySnapshots ??= new Map<ScenarioId, Snapshot>();
 for (const [id, seed] of seeds) {
   if (!snapshots.has(id)) snapshots.set(id, structuredClone(seed.snapshot));
@@ -147,13 +152,52 @@ export class MemoryStore implements Store {
     return { applied: true, state_version: stateVersion(snapshot) };
   }
 
+  async applyWarehouseReport(scenarioId: ScenarioId, key: string, input: WarehouseEvent) {
+    const parsed = warehouseEventSchema.safeParse(input);
+    if (!z.uuid().safeParse(key).success || !parsed.success) throw new StoreError("INVALID_INPUT", "Invalid report");
+    const event = parsed.data;
+    const snapshot = snapshotFor(scenarioId);
+    const prior = reports.get(scenarioId) ?? new Map<string, WarehouseEvent>();
+    const previous = prior.get(key.toLowerCase());
+    if (previous) {
+      if (JSON.stringify(previous) !== JSON.stringify(event)) throw new StoreError("IDEMPOTENCY_CONFLICT", "Report key reused");
+      return { applied: true as const, replayed: true };
+    }
+    const row = snapshot.stock.find(r => r.warehouse_id === event.warehouse_id && r.sku_id === event.sku_id);
+    const day = snapshot.scenario.now_at.slice(0, 10);
+    const validClock = (time: string) => time.startsWith(day + "T") && /^.{10}T\d\d:\d\d:00\+07:00$/.test(time);
+    if (!row || (event.type === "stock_found" && row.on_hand > 2147483647 - event.quantity)
+      || (event.type !== "stock_found" && !validClock(event.at))
+      || (event.type === "delay" && Date.parse(event.at) <= Date.parse(row.ready_at))
+      || (event.type === "resumed" && (!validClock(event.window_start) || !validClock(event.window_end)
+        || event.at < event.window_start || event.at >= event.window_end))) throw new StoreError("INVALID_INPUT", "Invalid stock update");
+    if (event.type === "stock_found") row.on_hand += event.quantity;
+    if (event.type === "delay") {
+      row.ready_at = event.at;
+      // A later real report subsumes any fixed delay button for this SKU and location.
+      const changes: Record<string, { warehouse_id: string; sku_id: string; ready_at: string }> = seeds.get(scenarioId)?.eventChanges ?? {};
+      for (const [id, change] of Object.entries(changes)) {
+        if (change.warehouse_id !== row.warehouse_id || change.sku_id !== row.sku_id || change.ready_at > event.at) continue;
+        const preset = snapshot.scenario.demo_events.find(item => item.id === id);
+        if (preset) preset.applied = true;
+      }
+    }
+    if (event.type === "resumed") (snapshot.resumptions ??= []).push(event);
+    row.report_revision = ++row.revision;
+    prior.set(key.toLowerCase(), event);
+    reports.set(scenarioId, prior);
+    return { applied: true as const, replayed: false };
+  }
+
   async reset(scenarioId?: ScenarioId): Promise<void> {
     if (scenarioId !== undefined) {
       const seed = seeds.get(scenarioId);
       if (!seed) throw new StoreError("INVALID_INPUT", "Unknown scenario");
+      reports.delete(scenarioId);
       snapshots.set(scenarioId, structuredClone(seed.snapshot));
     } else {
       snapshots.clear();
+      reports.clear();
       for (const [id, seed] of seeds) snapshots.set(id, structuredClone(seed.snapshot));
     }
   }

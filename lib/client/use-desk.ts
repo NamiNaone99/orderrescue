@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import type { InterpretResponse, PlanRequest, PlanResponse, ReservationRequest, ReservationResponse, StateResponse } from "@/lib/domain/contracts";
+import type { ChatApply, InterpretResponse, PlanRequest, PlanResponse, ReservationRequest, ReservationResponse, StateResponse } from "@/lib/domain/contracts";
 import type { ScenarioId } from "@/lib/domain/types";
 import { api, DeskApiError } from "./api";
 import { planChanges, type PlanChange } from "./plan-changes";
@@ -9,6 +9,7 @@ import { planChanges, type PlanChange } from "./plan-changes";
 type Operation = "load" | "interpret" | "plan" | "book" | "reset" | "refresh" | "event";
 type IncidentWindow = Pick<PlanRequest["incident"], "warehouse_id" | "window_start" | "window_end">;
 type DispatchState = {
+  outageMessages: { receivedAt: string; warehouse: string | null; message: string }[]; chatSession: number;
   stock: StateResponse | null; catalog: StateResponse["skus"]; message: string; evidenceMessage: string;
   interpretation: InterpretResponse | null; manualIncident: PlanRequest["incident"] | null; sku: string; budget: string;
   plan: PlanResponse | null; plannedInput: PlanRequest | null; confirmation: ReservationRequest | null;
@@ -16,6 +17,7 @@ type DispatchState = {
   booked: ReservationResponse | null; busy: Operation | null; error: { operation: Operation; api: DeskApiError } | null;
 };
 const initial: DispatchState = {
+  outageMessages: [], chatSession: 0,
   stock: null, catalog: [], message: "", evidenceMessage: "", interpretation: null, manualIncident: null, sku: "", budget: "",
   plan: null, plannedInput: null, confirmation: null, baseline: null, stale: null, booked: null, busy: "load", error: null,
 };
@@ -24,7 +26,7 @@ type Action =
   | { type: "failed"; op: Operation; error: DeskApiError }
   | { type: "loaded"; stock: StateResponse; catalog: StateResponse["skus"] }
   | { type: "edit"; message: string }
-  | { type: "interpreted"; answer: InterpretResponse; message: string; sku: string }
+  | { type: "interpreted"; answer: InterpretResponse; message: string; sku: string; receivedAt: string; sender?: string | null }
   | { type: "manual"; incident: PlanRequest["incident"] }
   | { type: "selection"; budget: string; sku: string }
   | { type: "planned"; plan: PlanResponse; input: PlanRequest; stock: StateResponse }
@@ -60,10 +62,12 @@ function reducer(s: DispatchState, a: Action): DispatchState {
       return { ...s, busy: null, error: { operation: a.op, api: a.error },
         confirmation: a.op === "book" && (a.error.status === 422 || a.error.status === 429) ? null : s.confirmation };
     }
-    case "loaded": return { ...initial, stock: a.stock, catalog: a.catalog, busy: null,
+    case "loaded": return { ...initial, chatSession: s.chatSession + 1, stock: a.stock, catalog: a.catalog, busy: null,
       message: a.stock.scenario.sample_messages[0]?.text ?? "", budget: String(a.stock.scenario.default_budget_thb) };
     case "edit": return { ...s, message: a.message, interpretation: null, manualIncident: null, plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
-    case "interpreted": return { ...s, interpretation: a.answer, manualIncident: null, evidenceMessage: a.message, sku: a.sku,
+    case "interpreted": return { ...s, interpretation: a.answer, manualIncident: null, message: a.message, evidenceMessage: a.message, sku: a.sku,
+      outageMessages: a.answer.incident ? [...s.outageMessages, { receivedAt: a.receivedAt,
+        warehouse: a.sender === undefined ? a.answer.incident.warehouse_id : a.sender, message: a.message }] : s.outageMessages,
       plan: null, plannedInput: null, baseline: null, stale: null, busy: null, error: null };
     case "manual": return { ...s, manualIncident: a.incident, interpretation: null, sku: a.incident.sku_id,
       plan: null, plannedInput: null, baseline: null, booked: null, confirmation: null, stale: null, busy: null, error: null };
@@ -90,7 +94,7 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
   const initialRead = useRef<Promise<boolean> | null>(null);
   const queuedAnalysis = useRef(false);
   const pending = useRef<AbortController | null>(null);
-  const lastEvent = useRef<string | null>(null);
+  const lastEvent = useRef<string | ChatApply | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const cancel = useCallback(() => { clearTimeout(timer.current); pending.current?.abort(); }, []);
   const run = useCallback(async (op: Operation, work: (signal: AbortSignal, apply: (a: Action) => void) => Promise<void>) => {
@@ -189,7 +193,7 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
       const answer = await api.interpret({ scenario, message: s.message }, signal);
       const ids = answer.incident?.sku_ids ?? [];
       const sku = ids.includes(s.sku) ? s.sku : ids.length === 1 ? ids[0] : "";
-      apply({ type: "interpreted", answer, message: s.message, sku });
+      apply({ type: "interpreted", answer, message: s.message, receivedAt: new Date().toISOString(), sku });
       if (signal.aborted) return;
       if (answer.incident && sku && validBudget(s.budget)) await makePlan(answer.incident, sku, s.budget);
       else {
@@ -201,6 +205,12 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
   function edit(message: string) {
     cancel();
     dispatch({ type: "edit", message });
+  }
+  function acceptChatIncident(answer: Extract<InterpretResponse, { outcome: "incident" }>, message: string, receivedAt: string, sender: string | null) {
+    const ids = answer.incident.sku_ids;
+    const sku = ids.includes(s.sku) ? s.sku : ids.length === 1 ? ids[0] : "";
+    dispatch({ type: "interpreted", answer, message, receivedAt, sku, sender });
+    if (sku && validBudget(s.budget)) return makePlan(answer.incident, sku, s.budget);
   }
   function select(sku: string, budget: string, debounce = false) {
     if (s.stale) return;
@@ -233,6 +243,18 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
   function replan() {
     if (incident) return makePlan(incident, s.sku, s.budget);
   }
+  async function applyReport(input: ChatApply) {
+    if (s.confirmation || s.booked || restored || s.busy || s.error?.operation === "book") return false;
+    lastEvent.current = input;
+    let applied = false;
+    await run("event", async (signal, dispatchAction) => {
+      await api.applyReport(input, signal);
+      const stock = await api.state({ scenario, sku: s.sku || s.stock?.scenario.default_sku_id }, signal);
+      dispatchAction({ type: "refreshed", stock });
+      applied = !signal.aborted;
+    });
+    return applied;
+  }
   const bookingActive = useRef(false);
   async function book() {
     const input = s.confirmation;
@@ -252,7 +274,7 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
       case "reset": return load(true);
       case "refresh": return refresh();
       case "interpret": return analyse();
-      case "event": if (lastEvent.current) return applyEvent(lastEvent.current); break;
+      case "event": if (lastEvent.current) return typeof lastEvent.current === "string" ? applyEvent(lastEvent.current) : applyReport(lastEvent.current); break;
       case "plan": case "book":
         if (incident) {
           dispatch({ type: "dialog", confirmation: null });
@@ -260,6 +282,6 @@ export function useDesk(scenario: ScenarioId, defaults: Pick<StateResponse["scen
         }
     }
   }
-  return { s, restored, stockSku, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan, refresh,
+  return { s, restored, stockSku, incident, edit, select, analyse, planManually, retry, book, openDialog, applyEvent, replan, refresh, applyReport, acceptChatIncident,
     closeDialog: () => dispatch({ type: "dialog", confirmation: null }), startAgain: () => load(true) };
 }

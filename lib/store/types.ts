@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { DemoEventResponse, ReservationRequest, ReservationResponse } from "@/lib/domain/contracts";
+import type { DemoEventResponse, ReservationRequest, ReservationResponse, WarehouseEvent } from "@/lib/domain/contracts";
 import type { ErrorCode, Scenario, ScenarioId, Snapshot } from "@/lib/domain/types";
 
 // The database contract can use a private seed ID while routes retain the public scenario union.
@@ -20,6 +20,7 @@ export interface Store<Id extends string = ScenarioId> {
   getSnapshot(scenarioId: Id, opts?: SnapshotOptions): Promise<StoreSnapshot<Id>>;
   reserve(request: StoreReservationRequest<Id>): Promise<ReservationResponse>;
   applyDemoEvent(scenarioId: Id, eventId: string): Promise<DemoEventResponse>;
+  applyWarehouseReport(scenarioId: Id, key: string, event: WarehouseEvent): Promise<{ applied: true; replayed: boolean }>;
   reset(scenarioId?: Id): Promise<void>;
   health(): Promise<{ storage: "memory" | "supabase"; degraded: boolean }>;
 }

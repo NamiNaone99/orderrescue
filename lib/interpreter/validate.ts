@@ -38,7 +38,7 @@ export function checkMessage(message: string): string {
   return result.data;
 }
 
-function clarify(about: About, issue?: string, question = questions[about]): Clarification {
+export function clarify(about: About, issue?: string, question = questions[about]): Clarification {
   return {
     outcome: "clarification",
     incident: null,
@@ -51,7 +51,7 @@ const clock = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 // Booking requests belong to the operator confirmation flow (AC-22).
 const bookingCommand = /\b(?:book|reserve)\s+(?:all|every\w*|the|orders?|stock|sku)\b|(?:^|\s|ช่วย|กรุณา|โปรด)จอง/iu;
 
-function mentionsItem(message: string, id: string, name: string | undefined): boolean {
+export function mentionsItem(message: string, id: string, name: string | undefined): boolean {
   const escapedId = id.replace(/[.*+?^$(){}|[\]\\]/g, "\\$&");
   const wholeId = new RegExp("(^|[^a-z0-9_-])" + escapedId + "($|[^a-z0-9_-])", "i");
   if (wholeId.test(message)) return true;
