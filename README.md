@@ -101,6 +101,15 @@ The committed offline run was a small smoke evaluation on 3 synthetic team-writt
 9. Messages are pasted or selected from samples. There is no LINE or WhatsApp integration.
 10. This was a one-day build. Security and load verification are limited to the recorded checks.
 
+### Open review findings
+
+The frozen implementation at `17a9dc5` had five P2 limitations. [T22 findings and acceptance coverage](docs/codex-log/T22-review.md)
+
+- Each model attempt has a nine-second deadline. The initial database read can push the full Interpret request beyond the 25-second target. Per-model logs omit the HTTP request ID, which makes it difficult to match attempts to simultaneous requests.
+- At the reviewed commit the committed suite lacked T14's generated first-come comparison, independent full-objective oracle and timed 40-order test. The hero and 12-order results have fixture-specific checks.
+- A continuously focused desk can keep displaying the previous storage mode after an operational read falls back to memory. The store still refuses writes on the affected instance.
+- The API accepts budgets above ฿2,147,483,647. PostgreSQL uses a signed 32-bit integer for booking budgets and rejects larger values.
+
 ### Not built
 
 Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The `/built-with-codex` page currently shows a placeholder. The build evidence is in the logs below.
