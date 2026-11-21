@@ -60,9 +60,9 @@ Local checks used Windows, Node 22.20.0, memory storage and offline interpretati
 | `pnpm lint` | Passed. |
 | `pnpm typecheck` | Passed. |
 | `pnpm build`, then `pnpm start` | Production build passed and the local production server served the desk and API. |
-| `pnpm test` | 278 passed after the T22 build, including the browser-asset scan. The 19 opt-in hosted database contracts were skipped. |
+| `pnpm test` | 291 passed after the T14 build, including planner properties, scale checks and the browser-asset scan. The 19 opt-in hosted database contracts were skipped. |
 | `pnpm test:tz` | 48 domain checks passed in UTC and 48 passed in Asia/Bangkok. |
-| `pnpm e2e` | All 23 local Chromium cases passed in 2.3 minutes after the T22 fixes. |
+| `pnpm e2e` | All 23 local Chromium cases passed in 2.5 minutes on the T14 production build. |
 | `pnpm smoke` | All 4 local smoke checks passed. |
 | `pnpm audit --prod` | One moderate advisory in `minimatch@10.2.6`, pulled in by shadcn through ts-morph. Exit 1. [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) |
 | `pnpm test:db` against hosted Supabase | The team verified 19/19 hosted contracts in 34.50 s in T15. For this revision, `run by the team: <to fill>`. [Hosted result](docs/codex-log/T15.md) |
@@ -98,17 +98,16 @@ Plans and reservations share a per-IP limit of 20 requests in a burst, refilling
 4. The three-message smoke covers the supplied samples. The validator checks for warehouse and time cues, including known shifts and written times. Spoken Thai aliases and times still rely on model interpretation, and unfamiliar phrasing can require clarification. Real warehouse language still needs independent evaluation.
 5. Each plan handles one SKU, with a whole order line assigned to one warehouse.
 6. Readiness is one timestamp per warehouse/SKU. Transport routing, vehicle capacity and travel times remain outside the model.
-7. The search stops at 200,000 nodes and labels the best result found if the search is incomplete. The planning API rejects incidents affecting more than 60 orders.
+7. The search stops at 200,000 nodes and labels the best result found if the search is incomplete. The planning API rejects incidents affecting more than 60 orders. [Solver validation and timings](docs/SOLVER.md)
 8. The demo has shared state, public hero reset and no login or operator roles. Memory-mode state lasts only for that server process.
 9. Messages are pasted or selected from samples. There is no LINE or WhatsApp integration.
 10. This was a one-day build. Security and load verification are limited to the recorded checks.
 
 ### Open review findings
 
-The frozen implementation at `17a9dc5` had five P2 limitations. [T22 findings and acceptance coverage](docs/codex-log/T22-review.md)
+The frozen implementation at `17a9dc5` had five P2 limitations. T14 closed F6 with a generated first-come comparison, a full-objective exhaustive oracle and a timed 40-order gate. Four P2 findings remain. [T22 findings and acceptance coverage](docs/codex-log/T22-review.md) · [T14 evidence](docs/codex-log/T14.md)
 
 - Each model attempt has a nine-second deadline. The initial database read can push the full Interpret request beyond the 25-second target. Per-model logs omit the HTTP request ID, which makes it difficult to match attempts to simultaneous requests.
-- At the reviewed commit the committed suite lacked T14's generated first-come comparison, independent full-objective oracle and timed 40-order test. The hero and 12-order results have fixture-specific checks.
 - A continuously focused desk can keep displaying the previous storage mode after an operational read falls back to memory. The store still refuses writes on the affected instance.
 - The API accepts budgets above ฿2,147,483,647. PostgreSQL uses a signed 32-bit integer for booking budgets and rejects larger values.
 
