@@ -62,6 +62,7 @@ export class InterpreterQuota {
 const shared = globalThis as typeof globalThis & {
   orderRescueInterpretQuota?: { config: string; quota: InterpreterQuota };
   orderRescueHeroResets?: Map<string, number[]>;
+  orderRescuePlanningBucket?: TokenBucket;
 };
 
 function configuredInt(value: string | undefined, fallback: number, min: number): number {
@@ -78,6 +79,11 @@ export function getInterpreterQuota(): InterpreterQuota {
     shared.orderRescueInterpretQuota = { config, quota: new InterpreterQuota({ burst, refillMs, dailyCap }) };
   }
   return shared.orderRescueInterpretQuota.quota;
+}
+
+export function takePlanningRequest(request: Request): boolean {
+  const bucket = shared.orderRescuePlanningBucket ??= new TokenBucket(20, 1000);
+  return bucket.take(clientIp(request));
 }
 
 export function takeHeroReset(ip: string): boolean {
