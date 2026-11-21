@@ -19,6 +19,7 @@ test("stale hero plan names the slip and requires an explicit replan", { tag: "@
   await expect(banner).toContainText("13:30 → 14:30");
   const replan = banner.getByRole("button", { name: copy.replan.th });
   await expect(replan).toBeFocused();
+  await expect(page.locator("#desk-announcements")).toContainText(copy.stockChanged.th);
   const confirm = page.getByRole("button", { name: copy.confirmRows.th });
   await expect(confirm).toBeDisabled();
   expect(plans).toBe(1);
@@ -82,5 +83,7 @@ test("an uncertain confirmation keeps its key while a poll observes the booking"
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect(page.locator("#desk-receipt")).toContainText(copy.replayed.th);
+  await expect(page.locator("#desk-receipt")).toBeFocused();
+  await expect(page.locator("#desk-announcements")).toContainText(copy.replayed.th);
   await expect(page.locator("#stale-replan")).toHaveCount(0);
 });

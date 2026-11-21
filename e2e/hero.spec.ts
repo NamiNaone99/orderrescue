@@ -10,6 +10,8 @@ test("hero dispatch compares allocations and books the confirmed rows", { tag: "
   await expect(incident).toContainText("SKU-X");
   await expect(incident).toContainText("13:00–18:00");
   await expect(incident.locator("mark")).not.toBeEmpty();
+  await expect(incident).toBeFocused();
+  await expect(page.locator("#desk-announcements")).toContainText(copy.incident.th);
   const first = page.getByRole("article", { name: copy.firstCome.th });
   const joint = page.getByRole("article", { name: copy.joint.th });
   await expect(first).toContainText("1/2");
@@ -23,6 +25,8 @@ test("hero dispatch compares allocations and books the confirmed rows", { tag: "
   await dialog.getByRole("button", { name: copy.confirm.th, exact: true }).click();
   const receipt = page.getByRole("region", { name: copy.receipt.th });
   await expect(receipt).toContainText("฿88");
+  await expect(receipt).toBeFocused();
+  await expect(page.locator("#desk-announcements")).toContainText(copy.booked.th);
   for (const id of ["B","C"]) {
     const warehouse = page.getByRole("article", { name: copy.warehouse.th + " " + id, exact: true });
     await expect(warehouse.locator("dl div").filter({ hasText: copy.freeStock.th }).locator("dd")).toHaveText("0");

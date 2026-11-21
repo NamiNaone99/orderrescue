@@ -4,9 +4,10 @@ import { copy } from "@/lib/copy";
 import { formatBangkokTime } from "@/lib/domain/time";
 import type { InterpretResponse, StateResponse } from "@/lib/domain/contracts";
 
-export function MessageInput({ message, samples, edit, analyse, pending, locked, inputRef }: {
+export function MessageInput({ message, samples, edit, analyse, pending, locked, inputRef, onManual, manualOpen, manualDisabled }: {
   message: string; samples: StateResponse["scenario"]["sample_messages"]; edit: (text: string) => void;
   analyse: () => void; pending: boolean; locked: boolean; inputRef: RefObject<HTMLTextAreaElement | null>;
+  onManual: () => void; manualOpen: boolean; manualDisabled: boolean;
 }) {
   return <section className="desk-panel message-panel">
     <div className="panel-heading"><span className="panel-icon"><MessageSquareText aria-hidden /></span>
@@ -21,6 +22,7 @@ export function MessageInput({ message, samples, edit, analyse, pending, locked,
     <button className="primary-action analyse-action" type="button" disabled={locked || pending || !message.trim()}
       aria-busy={pending} onClick={analyse}>{pending ? <LoaderCircle className="spin" /> : <ScanText />}
       {pending ? copy.analysing.th : copy.analyse.th}<ChevronRight className="end-icon" /></button>
+    <button type="button" className="text-action manual-link" disabled={manualDisabled} aria-expanded={manualOpen} onClick={onManual}>{copy.manualEntry.th}</button>
   </section>;
 }
 
@@ -43,11 +45,14 @@ export function IncidentCard({ answer, message, sku, catalog, select, locked }: 
 }
 
 const secondary = { warehouse: copy.aboutWarehouse, sku: copy.aboutSku, time: copy.aboutTime, conflict: copy.aboutConflict, other: copy.aboutOther };
-export function ClarificationCard({ answer, onEdit }: { answer: Extract<InterpretResponse, { outcome: "clarification" }>; onEdit: () => void }) {
+export function ClarificationCard({ answer, onEdit, onManual, manualOpen }: {
+  answer: Extract<InterpretResponse, { outcome: "clarification" }>; onEdit: () => void; onManual: () => void; manualOpen: boolean;
+}) {
   const about = secondary[answer.clarification.about];
   return <section id="desk-incident" className="desk-panel clarification" tabIndex={-1} aria-labelledby="clarify-heading">
     <div className="panel-heading"><span className="panel-icon"><CircleHelp /></span><h2 id="clarify-heading">{copy.clarify.th}</h2></div>
     <p>{answer.clarification.question_th}</p><small lang="en">{about.en}</small>
     <button className="outline-action" onClick={onEdit}>{copy.editMessage.th}</button>
+    <button type="button" className="text-action manual-link" aria-expanded={manualOpen} onClick={onManual}>{copy.manualShort.th}</button>
   </section>;
 }

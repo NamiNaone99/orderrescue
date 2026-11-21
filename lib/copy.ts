@@ -1,6 +1,21 @@
 export interface CopyEntry { th: string; en: string }
 
 export const copy = {
+  manualEntry: { th: "กรอกเหตุการณ์เอง", en: "Enter incident manually" },
+  manualShort: { th: "กรอกเอง", en: "Enter manually" },
+  manualEntered: { th: "เหตุการณ์ที่กรอกเอง", en: "Manually entered incident" },
+  manualHint: { th: "เลือกคลัง สินค้า และช่วงเวลาที่งดหยิบตามเวลาจำลอง", en: "Select the warehouse, SKU and picking interruption in scenario time." },
+  manualPlan: { th: "วางแผนจากเหตุการณ์นี้", en: "Plan this incident" },
+  manualWarehouse: { th: "เลือกคลัง", en: "Select a warehouse" },
+  manualSku: { th: "เลือกสินค้าจากรายการ", en: "Choose a listed SKU" },
+  windowStart: { th: "เริ่มงดหยิบ", en: "Picking stops" },
+  windowEnd: { th: "สิ้นสุดการงดหยิบ", en: "Picking resumes" },
+  missingTime: { th: "กรอกเวลา", en: "Enter a time" },
+  invalidWindow: { th: "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น", en: "End time must follow start time" },
+  interpreterFallback: { th: "ใช้ตัวอ่านสำรอง", en: "Fallback interpreter used" },
+  interpreterQuota: { th: "ถึงขีดจำกัดการใช้งาน AI ชั่วคราว", en: "AI usage limit reached" },
+  incidentAnnouncement: { th: "{kind} คลัง {warehouse} สินค้า {skus} งดหยิบ {start} ถึง {end}", en: "{kind}, warehouse {warehouse}, SKU {skus}, picking paused from {start} to {end}" },
+  planAnnouncement: { th: "จัดร่วมกัน ทันเวลา {served} จาก {total} ค่าใช้จ่ายเพิ่ม {cost} บาท", en: "Joint plan, {served} of {total} on time, extra cost {cost} baht" },
   demoEvents: { th: "จำลองเหตุการณ์", en: "Demo events" },
   eventApplied: { th: "ใช้แล้ว", en: "Applied" },
   missingRow: { th: "ไม่พบรายการ", en: "Row unavailable" },
