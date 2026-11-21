@@ -20,7 +20,8 @@ export function tourFacts(desk: Desk, receipt?: SavedReceipt): TourFacts {
   const { s } = desk;
   const slipped = !!s.stock?.scenario.demo_events.find(event => event.id === "b-slips-1430")?.applied;
   return { analysed: !!desk.incident, hasPlan: !!s.plan, slipped, stale: !!s.stale, booked: !!receipt,
-    replanned: slipped && !s.stale && !!s.plan && s.plan.state_version === s.stock?.state_version };
+    replanned: slipped && !s.stale && !!s.plannedInput && !!s.plan &&
+      !!s.baseline?.scenario.demo_events.find(event => event.id === "b-slips-1430")?.applied };
 }
 
 export function tourScreen(step: number, desk: Desk, facts: TourFacts, receipt: SavedReceipt | undefined, finished: boolean) {
@@ -53,9 +54,9 @@ export function tourScreen(step: number, desk: Desk, facts: TourFacts, receipt: 
         served: sources(plan), human: humanOrders }) : c.waiting);
     default: {
       if (receipt) {
-        const line = receipt.lines[0];
+        const line = receipt.lines.find(row => row.sku_id === desk.stockSku);
         const stock = s.stock?.stock.find(row => row.warehouse_id === line?.warehouse_id && row.sku_id === line.sku_id);
-        if (!finished && (!stock || stock.revision <= line.expected_revision)) return screen("#desk-receipt", words(c.receiptPending, { ref: receipt.id.slice(0, 8) }));
+        if (!finished && (!line || !stock || stock.revision <= line.expected_revision)) return screen("#desk-receipt", words(c.receiptPending, { ref: receipt.id.slice(0, 8) }));
         return screen("#desk-receipt", finished ? c.done : words(c.receipt, { ref: receipt.id.slice(0, 8),
           stock: stock ? words(c.free, { wh: stock.warehouse_id, qty: String(stock.free) }).th : "" }));
       }
