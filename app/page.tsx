@@ -17,6 +17,7 @@ import { DemoEvents } from "@/components/DemoEvents";
 import { StaleBanner } from "@/components/StaleBanner";
 import { ManualIncidentForm } from "@/components/ManualIncidentForm";
 import { useServiceHealth } from "@/components/mode-badges";
+import { PlanInsights } from "@/components/desk/plan-insights";
 
 function reveal(panel: HTMLElement) {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -158,6 +159,7 @@ export default function DeskPage() {
         if (params.has("receipt")) editTourUrl(p => p.delete("receipt"));
         void desk.startAgain();
       }} busy={!!s.busy} />}
+      {!shownReceipt && <PlanInsights desk={desk} locked={locked || !!s.busy || manualOpen} />}
     </div>
     <ConfirmDialog input={s.confirmation} plan={s.plan} busy={s.busy === "book"} degraded={!!health?.degraded} error={s.error?.operation === "book" ? s.error.api : null}
       tourHost={touring ? setTourHost : undefined} cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
