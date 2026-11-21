@@ -15,9 +15,16 @@ export async function createPlan({ scenario, incident, budget_thb }: PlanRequest
   if (snapshot.orders.length > 60 && findAffected(snapshot, incident).length > 60) {
     throw new ApiError("INVALID_INPUT");
   }
-  const result = plan(snapshot, incident, budget_thb);
+  const resumed = snapshot.resumptions?.filter(event => event.warehouse_id === incident.warehouse_id
+    && event.sku_id === incident.sku_id && event.window_start === incident.window_start
+    && event.window_end === incident.window_end).map(event => event.at).sort().at(0);
+  const result = plan(snapshot, resumed ? { ...incident, window_end: resumed } : incident, budget_thb);
+  const reportRevisions = snapshot.stock.flatMap(row => row.report_revision === undefined ? [] :
+    [{ warehouse_id: row.warehouse_id, sku_id: row.sku_id, revision: row.report_revision }]);
   return {
     ...result,
+    ...(resumed ? { effective_window_end: resumed } : {}),
+    ...(reportRevisions.length ? { report_revisions: reportRevisions } : {}),
     budget_thb,
     plan_hash: planHash(scenario, incident, budget_thb, result.joint.lines),
     state_version: snapshot.state_version,

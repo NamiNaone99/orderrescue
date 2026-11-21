@@ -4,6 +4,7 @@ import type {
   PlanResponse,
   ReservationResponse,
   StateResponse,
+  WarehouseEvent,
 } from "./contracts";
 
 export type Scenario = StateResponse["scenario"];
@@ -30,6 +31,7 @@ export type Reservation = ReservationResponse["receipt"] & { budget_thb: number 
 export type ErrorCode = ErrorResponse["error"]["code"];
 
 export interface Snapshot {
+  resumptions?: Extract<WarehouseEvent, { type: "resumed" }>[];
   scenario: Scenario;
   warehouses: Warehouse[];
   skus: Sku[];

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, TriangleAlert } from "lucide-react";
 import { GuidedDemo, editTourUrl } from "@/components/desk/guided-demo";
 import { DemoGuide } from "@/components/desk/demo-guide";
-import { copy } from "@/lib/copy";
+import { chatCopy, copy } from "@/lib/copy";
 import { useDesk, validBudget } from "@/lib/client/use-desk";
 import { formatBangkokTime } from "@/lib/domain/time";
 import { DataBadge } from "@/components/header";
@@ -14,6 +14,7 @@ import { BudgetControl, StockPanel } from "@/components/desk/controls";
 import { ConfirmDialog, ErrorNotice, Receipt } from "@/components/desk/booking";
 import { PlanCompare } from "@/components/desk/plan";
 import { DemoEvents } from "@/components/DemoEvents";
+import { WarehouseChat } from "@/components/desk/warehouse-chat";
 import { StaleBanner } from "@/components/StaleBanner";
 import { ManualIncidentForm } from "@/components/ManualIncidentForm";
 import { useServiceHealth } from "@/components/mode-badges";
@@ -38,6 +39,8 @@ export default function DeskPage() {
   const health = useServiceHealth();
   const input = useRef<HTMLTextAreaElement>(null);
   const [manualOpen, setManualOpen] = useState(false);
+  const [readingChat, setReadingChat] = useState(false);
+  const [viewingChat, setViewingChat] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
   function openManual() {
     if (manualOpen) {
@@ -89,8 +92,8 @@ export default function DeskPage() {
     };
   }, [s.plan, touring]);
   const step = manualOpen ? 1 : shownReceipt || s.confirmation ? 3 : s.plan ? 2 : s.interpretation || s.manualIncident ? 1 : 0;
-  const locked = !!shownReceipt || !!s.confirmation || !!s.stale;
-  const manualDisabled = !s.stock || !!s.confirmation || s.busy === "book" || s.busy === "reset" || s.busy === "event";
+  const locked = !!shownReceipt || !!s.confirmation || !!s.stale || readingChat;
+  const manualDisabled = !s.stock || !!s.confirmation || readingChat || s.busy === "book" || s.busy === "reset" || s.busy === "event";
   const loading = s.busy === "plan" || s.busy === "interpret";
   const meta = s.interpretation?.interpreter;
   const fallback = meta && (meta.used === "offline" || meta.rate_limited || meta.attempts.some(attempt => attempt.name !== meta.used));
@@ -108,6 +111,7 @@ export default function DeskPage() {
     if (s.stale) return "replan";
     if (s.error) return "retry";
     if (shownReceipt) return "new";
+    if (viewingChat) return "chat";
     if (s.plan) {
       if (!s.plan.affected.length && scenario.id === "hero") return "reset";
       if (!s.plan.joint.lines.length && s.plan.joint.needs_human.some(row => row.reason === "OVER_BUDGET")) return "budget";
@@ -142,6 +146,7 @@ export default function DeskPage() {
         {s.interpretation?.outcome === "ignore" && <p id="desk-incident" tabIndex={-1} className="desk-panel">{copy.notPicking.th}</p>}
         {s.interpretation?.outcome === "ignore" && <button className="text-action rewrite-action" onClick={() => input.current?.focus()}>{copy.editMessage.th}</button>}
         {s.interpretation?.outcome !== "incident" && interpreterNote}
+        {!touring && <a className="text-action chat-jump" href="#warehouse-chat">{chatCopy.jump.th}</a>}
         {manualOpen && s.stock && !manualDisabled && <ManualIncidentForm stock={s.stock} skus={s.catalog} previous={s.manualIncident}
           budgetValid={validBudget(s.budget)} cancel={closeManual} submit={incident => { setManualOpen(false); void desk.planManually(incident); }} />}
         {s.manualIncident && !manualOpen && <section className="desk-panel" id="desk-incident" tabIndex={-1} aria-labelledby="manual-result">
@@ -149,10 +154,10 @@ export default function DeskPage() {
           <p>{copy.blocked.th} {formatBangkokTime(s.manualIncident.window_start)}–{formatBangkokTime(s.manualIncident.window_end)}</p></section>}
       </div>
       <PlanCompare plan={s.plan} loading={loading} booked={!!shownReceipt} stale={!!s.stale}
-        notice={s.stale && <StaleBanner changes={s.stale.changes} refusal={s.stale.refusal} pending={!!s.busy} replan={desk.replan} />}
+        notice={s.stale && <StaleBanner changes={s.stale.changes} refusal={s.stale.refusal} pending={!!s.busy || readingChat} replan={desk.replan} />}
         reset={scenario.id === "hero" ? () => { setManualOpen(false); void desk.startAgain(); } : undefined} resetDisabled={!!s.busy || !!health?.degraded} />
       <div className="stock-column"><StockPanel stock={s.stock} sku={sku} incident={desk.incident} plan={s.plan} receipt={shownReceipt?.receipt} waiting={s.busy === "interpret"} />
-        <DemoEvents events={s.stock?.scenario.demo_events ?? scenario.demo_events} disabled={!s.stock || !!s.busy || !!s.confirmation} apply={desk.applyEvent} /></div>
+        <DemoEvents events={s.stock?.scenario.demo_events ?? scenario.demo_events} disabled={!s.stock || !!s.busy || !!s.confirmation || readingChat} apply={desk.applyEvent} /></div>
       {!shownReceipt && <BudgetControl value={s.budget} change={v => desk.select(s.sku,v,true)} plan={s.plan} hero={scenario.id === "hero"}
         busy={!!s.busy} locked={!s.stock || locked} stale={!!s.stale} canBook={!!s.plan?.joint.lines.length && !!s.plannedInput && !s.error && !health?.degraded && !manualOpen} open={desk.openDialog} />}
       {shownReceipt && <Receipt result={shownReceipt} plan={s.plan} newIncident={() => {
@@ -161,6 +166,11 @@ export default function DeskPage() {
       }} busy={!!s.busy} />}
       {!shownReceipt && <PlanInsights desk={desk} locked={locked || !!s.busy || manualOpen} />}
     </div>
+    {!touring && <WarehouseChat key={scenario.id + s.chatSession} scenario={scenario.id} incident={s.plannedInput?.incident ?? null}
+      openings={s.outageMessages} warehouses={s.stock?.warehouses ?? []}
+      disabled={!s.stock || !!s.busy || !!s.confirmation || !!shownReceipt || s.error?.operation === "book"}
+      degraded={!!health?.degraded} setReading={setReadingChat} setVisible={setViewingChat}
+      acceptOutage={desk.acceptChatIncident} applyReport={desk.applyReport} />}
     <ConfirmDialog input={s.confirmation} plan={s.plan} busy={s.busy === "book"} degraded={!!health?.degraded} error={s.error?.operation === "book" ? s.error.api : null}
       tourHost={touring ? setTourHost : undefined} cancel={desk.closeDialog} book={desk.book} replan={desk.retry} />
     {touring && <GuidedDemo desk={desk} query={query} host={tourHost} degraded={!!health?.degraded} restored={saved} />}

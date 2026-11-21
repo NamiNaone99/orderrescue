@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { RefreshCw, TriangleAlert } from "lucide-react";
-import { copy, polishCopy } from "@/lib/copy";
+import { chatCopy, copy, polishCopy } from "@/lib/copy";
 import type { DeskApiError } from "@/lib/client/api";
 import type { PlanChange } from "@/lib/client/plan-changes";
 import { formatBangkokTime } from "@/lib/domain/time";
@@ -11,6 +11,7 @@ function describe(change: PlanChange) {
     return "#" + change.id + " · " + status.th;
   }
   const row = copy.warehouse.th + " " + change.warehouse;
+  if (change.kind === "report") return row + " · " + change.sku + " · " + chatCopy.applied.th;
   if (change.oldReady && change.newReady && change.oldReady !== change.newReady) {
     return row + " · " + copy.readyTime.th + " " + formatBangkokTime(change.oldReady) + " → " + formatBangkokTime(change.newReady);
   }

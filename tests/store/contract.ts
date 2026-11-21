@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
-import { reservationResponseSchema, type ReservationRequest, type ReservationResponse } from "@/lib/domain/contracts";
+import { reservationResponseSchema, type ReservationRequest, type ReservationResponse, type WarehouseEvent } from "@/lib/domain/contracts";
 import type { ErrorCode, Warehouse } from "@/lib/domain/types";
 import type { Store, StoreReservationRequest, StoreSnapshot } from "@/lib/store/types";
 
@@ -221,6 +221,43 @@ export function storeContract<Id extends string>(make: () => Context<Id> | Promi
     it("restores the seed after booking and a demo event", async () => {
       await store.reserve(booking([line("101", "B")]));
       await store.applyDemoEvent(scenarioId, "b-slips-1430");
+      await store.reset(scenarioId);
+      expect(await store.getSnapshot(scenarioId)).toEqual(seed);
+    });
+
+    it("adds reported stock once across five requests and refuses a conflicting key", async () => {
+      const key = randomUUID();
+      const event: WarehouseEvent = { type: "stock_found", warehouse_id: "C", sku_id: "SKU-X", quantity: 4 };
+      const results = await Promise.all(Array.from({ length: 5 }, () => store.applyWarehouseReport(scenarioId, key, event)));
+      expect(results.filter(result => !result.replayed)).toHaveLength(1);
+      const after = await store.getSnapshot(scenarioId);
+      expect(after.stock.find(row => row.warehouse_id === "C")).toMatchObject({ on_hand: 12, committed: 0, revision: 2, report_revision: 2 });
+      expect(await store.applyWarehouseReport(scenarioId, key.toUpperCase(), event)).toEqual({ applied: true, replayed: true });
+      await expect(store.applyWarehouseReport(scenarioId, key, { ...event, quantity: 5 })).rejects.toMatchObject({ code: "IDEMPOTENCY_CONFLICT" });
+      expect(await store.getSnapshot(scenarioId)).toEqual(after);
+    });
+
+    it("keeps a later reported departure when the preset and report run together", async () => {
+      const event: WarehouseEvent = { type: "delay", warehouse_id: "B", sku_id: "SKU-X", at: "2026-11-21T15:15:00+07:00" };
+      const key = randomUUID();
+      await Promise.all([store.applyWarehouseReport(scenarioId, key, event), store.applyDemoEvent(scenarioId, "b-slips-1430")]);
+      const after = await store.getSnapshot(scenarioId);
+      expect(after.stock.find(row => row.warehouse_id === "B")).toMatchObject({ ready_at: event.at });
+      expect(after.scenario.demo_events.find(preset => preset.id === "b-slips-1430")?.applied).toBe(true);
+      await store.applyWarehouseReport(scenarioId, key, event);
+      await store.applyDemoEvent(scenarioId, "b-slips-1430");
+      expect(await store.getSnapshot(scenarioId)).toEqual(after);
+    });
+
+    it("records the exact resumed outage, refuses out-of-window time and restores the seed on reset", async () => {
+      const event: WarehouseEvent = { type: "resumed", warehouse_id: "A", sku_id: "SKU-X", at: "2026-11-21T13:30:00+07:00",
+        window_start: "2026-11-21T13:00:00+07:00", window_end: "2026-11-21T18:00:00+07:00" };
+      await store.applyWarehouseReport(scenarioId, randomUUID(), event);
+      const after = await store.getSnapshot(scenarioId);
+      expect(after.resumptions).toEqual([event]);
+      expect(after.stock.find(row => row.warehouse_id === "A")).toMatchObject({ on_hand: 24, committed: 8, revision: 2, report_revision: 2 });
+      await expect(store.applyWarehouseReport(scenarioId, randomUUID(), { ...event, at: event.window_end })).rejects.toMatchObject({ code: "INVALID_INPUT" });
+      expect(await store.getSnapshot(scenarioId)).toEqual(after);
       await store.reset(scenarioId);
       expect(await store.getSnapshot(scenarioId)).toEqual(seed);
     });

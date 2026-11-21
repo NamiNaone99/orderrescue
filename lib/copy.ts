@@ -1,5 +1,35 @@
 export interface CopyEntry { th: string; en: string }
 
+export const chatCopy = {
+  title: { th: "แชตจากคลัง", en: "Warehouse chat" },
+  jump: { th: "ดูแชตและแจ้งข้อมูลจากคลัง", en: "Open warehouse chat" },
+  history: { th: "ข้อความที่ได้รับ", en: "Received messages" },
+  zone: { th: "เวลาไทย", en: "Bangkok time" },
+  empty: { th: "ยังไม่มีข้อความจากคลัง", en: "No warehouse messages yet" },
+  sender: { th: "ผู้ส่งข้อความ", en: "Message sender" },
+  sampleDelay: { th: "รถ B ออกช้า", en: "B departs later" },
+  sampleFound: { th: "คลัง C พบของเพิ่ม", en: "C found stock" },
+  sampleResumed: { th: "คลัง A กลับมาหยิบได้", en: "A resumed picking" },
+  add: { th: "ส่งข้อความจากคลัง", en: "Add a message" },
+  read: { th: "อ่านข้อความ", en: "Interpret" },
+  reading: { th: "กำลังอ่านข้อความ…", en: "Reading…" },
+  apply: { th: "ยืนยันการอัปเดต", en: "Apply update" },
+  applied: { th: "อัปเดตแล้ว", en: "Applied" },
+  found: { th: "คลัง {wh} · {sku} · พบสินค้าเพิ่ม {value} หน่วย", en: "Warehouse {wh} · {sku} · {value} extra units found" },
+  delay: { th: "คลัง {wh} · {sku} · เลื่อนเวลาพร้อมส่งเป็น {value} น.", en: "Warehouse {wh} · {sku} · Ready time delayed to {value}" },
+  resumed: { th: "คลัง {wh} · {sku} · กลับมาหยิบได้ตั้งแต่ {value} น.", en: "Warehouse {wh} · {sku} · Picking resumed at {value}" },
+  readError: { th: "อ่านข้อความไม่สำเร็จ กรุณาลองส่งอีกครั้ง", en: "Could not read the message. Send it again." },
+  applyError: { th: "ยังยืนยันผลไม่ได้ ลองใช้ปุ่มยืนยันเดิมอีกครั้ง", en: "The update is unconfirmed. Retry the same confirmation." },
+  needLocation: { th: "รายงานนี้มาจากคลังไหนคะ", en: "Which warehouse sent this report?" },
+  oneSku: { th: "ต้องการอัปเดตสินค้ารหัสใดหนึ่งรหัสคะ", en: "Which single SKU should be updated?" },
+  needSku: { th: "ขอรหัสสินค้าที่คลังต้องการอัปเดตค่ะ", en: "Which SKU is the warehouse reporting?" },
+  needCount: { th: "พบสินค้าเพิ่มกี่หน่วยคะ กรุณาระบุจำนวนพร้อมหน่วย", en: "How many additional units were found?" },
+  needClock: { th: "ขอเวลาที่แน่นอน เช่น 14:30 น. ค่ะ", en: "What is the exact time, for example 14:30?" },
+  later: { th: "เวลาที่เลื่อนออกไปใหม่คือกี่โมงคะ", en: "What is the new, later time?" },
+  whichOutage: { th: "คลังกลับมาหยิบสินค้าสำหรับเหตุการณ์ใดคะ", en: "Which outage has ended?" },
+  whenResumed: { th: "คลังกลับมาหยิบได้เวลาใดในช่วงที่หยุดคะ", en: "When during the reported outage did picking resume?" },
+} satisfies Record<string, CopyEntry>;
+
 export const copy = {
   manualEntry: { th: "กรอกเหตุการณ์เอง", en: "Enter incident manually" },
   manualShort: { th: "กรอกเอง", en: "Enter manually" },

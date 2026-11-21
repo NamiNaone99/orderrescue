@@ -1,6 +1,7 @@
 import "server-only";
 import type { Snapshot } from "@/lib/domain/types";
 import { scenarioRegistry } from "@/lib/scenarios";
+import { heroFollowups } from "@/lib/domain/chat-samples";
 import { rawInterpretationSchema, type RawInterpretation } from "./schema";
 
 function normalizeWhitespace(text: string): string {
@@ -37,4 +38,19 @@ export function offlineInterpret(message: string, snapshot: Snapshot): RawInterp
   const matched = message.match(new RegExp(words.join("\\s+"), "u"));
   if (!matched) return unknownMessage();
   return { ...result, evidence_quote: matched[0] };
+}
+
+export function offlineChat(message: string, snapshot: Snapshot) {
+  const sample = snapshot.scenario.id === "hero" && heroFollowups.find(item => normalizeWhitespace(message) === item.text);
+  if (!sample) {
+    const result = offlineInterpret(message, snapshot);
+    return { ...result, event_type: result.kind === "incident" ? "outage" : null, event_time: null, quantity: null };
+  }
+  return {
+    evidence_quote: message.trim(), kind: "incident", event_type: sample.type,
+    warehouse: { delay: "B", stock_found: "C", resumed: "A" }[sample.type],
+    skus: sample.type === "delay" ? [] : ["SKU-X"], window_start: null, window_end: null,
+    event_time: sample.type === "resumed" ? "13:30" : sample.type === "delay" ? "14:30" : null,
+    quantity: sample.type === "stock_found" ? 4 : null, clarify_about: null, clarification_question: null,
+  };
 }
