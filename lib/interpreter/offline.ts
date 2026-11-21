@@ -1,6 +1,7 @@
 import "server-only";
 import type { Snapshot } from "@/lib/domain/types";
 import { scenarioRegistry } from "@/lib/scenarios";
+import { deskSamples } from "@/lib/scenarios/desk-copy";
 import { heroFollowups } from "@/lib/domain/chat-samples";
 import { rawInterpretationSchema, type RawInterpretation } from "./schema";
 
@@ -26,7 +27,8 @@ export function offlineInterpret(message: string, snapshot: Snapshot): RawInterp
     (entry) => entry.snapshot.scenario.id === snapshot.scenario.id,
   );
   const normalized = normalizeWhitespace(message);
-  const sample = registered?.sampleMessages.find(({ text }) => normalizeWhitespace(text) === normalized);
+  const samples = [...deskSamples(snapshot.scenario.id), ...(registered?.sampleMessages ?? [])];
+  const sample = samples.find(({ text }) => normalizeWhitespace(text) === normalized);
   if (!sample) return unknownMessage();
 
   const result = rawInterpretationSchema.parse(sample.expected);
@@ -41,7 +43,11 @@ export function offlineInterpret(message: string, snapshot: Snapshot): RawInterp
 }
 
 export function offlineChat(message: string, snapshot: Snapshot) {
-  const sample = snapshot.scenario.id === "hero" && heroFollowups.find(item => normalizeWhitespace(message) === item.text);
+  const text = normalizeWhitespace(message);
+  const sample = snapshot.scenario.id === "hero" && (
+    heroFollowups.find(item => text === item.text) ??
+    (text === "คลัง A กลับมาหยิบ SKU-X ได้แล้วตั้งแต่ 13:30 น." ? heroFollowups[2] : undefined)
+  );
   if (!sample) {
     const result = offlineInterpret(message, snapshot);
     return { ...result, event_type: result.kind === "incident" ? "outage" : null, event_time: null, quantity: null };

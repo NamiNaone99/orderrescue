@@ -62,8 +62,8 @@ function DecisionSummary({ plan }: { plan: PlanResponse }) {
   const estimate = /^\d+$/.test(loss) && Number.isSafeInteger(Number(loss)) ? Number(loss) : null;
   const difference = estimate === null ? null : estimate - extra;
   if (!plan.affected.length) return null;
-  return <section className="decision-summary" aria-label="ผลต่างของสองแผน">
-    <p className="decision-scope">{plan.affected.length} ออเดอร์เสี่ยงพลาดรอบ</p>
+  return <section className="du-alert du-alert-soft du-alert-success decision-summary" aria-label="ผลต่างของสองแผน">
+    <p className="du-badge du-badge-soft du-badge-warning decision-scope">{plan.affected.length} ออเดอร์เสี่ยงพลาดรอบ</p>
     {gain > 0 ? <>
       <p className="decision-lead"><strong>ส่งทันเพิ่ม {gain} ใบ</strong>
         {" · "}{extra > 0 ? <>จ่ายเพิ่มอีก <strong>{formatThb(extra)}</strong></>

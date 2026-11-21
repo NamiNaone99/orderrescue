@@ -1,9 +1,11 @@
 import "server-only";
 import type { StateResponse } from "@/lib/domain/contracts";
 import type { StoreSnapshot } from "@/lib/store/types";
+import { deskScenario } from "@/lib/scenarios/desk-copy";
 
 export function publicState(snapshot: StoreSnapshot): StateResponse {
-  const { scenario, warehouses, skus, stock, orders, order_lines, reservations, state_version } = snapshot;
+  const { warehouses, skus, stock, orders, order_lines, reservations, state_version } = snapshot;
+  const scenario = deskScenario(snapshot.scenario);
   const linesByOrder = Map.groupBy(order_lines, line => line.order_id);
   return {
     scenario: {

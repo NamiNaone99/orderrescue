@@ -5,6 +5,9 @@ import { analyseHero, resetDemo } from "./helpers";
 test("the decision explains the extra warehouse cost and compares it with the operator's estimate", async ({ page, request }) => {
   await resetDemo(request);
   await analyseHero(page);
+  await expect(page.getByRole("heading", { name: copy.deskHeading.th })).toBeVisible();
+  await expect(page.getByText("ช่วงที่เตรียมของไม่ได้", { exact: true })).toBeVisible();
+  await expect(page.locator(".blocked-time")).toContainText("ของยังไม่พร้อมส่ง");
   const comparison = page.getByRole("region", { name: copy.compare.th });
   expect((await comparison.boundingBox())?.width).toBeGreaterThan(600);
   const decision = page.getByRole("region", { name: "ผลต่างของสองแผน" });
@@ -35,7 +38,7 @@ test("the decision explains the extra warehouse cost and compares it with the op
 
 test("an inline reply is interpreted with the original report before planning", async ({ page, request }) => {
   await resetDemo(request);
-  const original = "คลัง A หยิบ SKU-X ไม่ได้";
+  const original = "คลัง A เตรียม SKU-X ไม่ได้";
   const reply = "ตั้งแต่ 13:00 ถึง 18:00 น.";
   const interpreter = { used: "openai:test", attempts: [{ name: "openai:test", ok: true }], latency_ms: 1, rate_limited: false };
   const validation = { ok: true, issues: [] };
@@ -44,7 +47,7 @@ test("an inline reply is interpreted with the original report before planning", 
     const { message } = route.request().postDataJSON();
     messages.push(message);
     return route.fulfill({ json: messages.length === 1 ? {
-      outcome: "clarification", incident: null, clarification: { about: "time", question_th: "หยิบไม่ได้ช่วงกี่โมงครับ?" },
+      outcome: "clarification", incident: null, clarification: { about: "time", question_th: "เตรียมของไม่ได้ช่วงกี่โมงครับ?" },
       interpreter, validation,
     } : {
       outcome: "incident", clarification: null, incident: {
@@ -58,7 +61,7 @@ test("an inline reply is interpreted with the original report before planning", 
   await input.fill(original);
   await page.getByRole("button", { name: copy.analyse.th }).click();
   const question = page.getByRole("region", { name: copy.clarify.th });
-  await expect(question).toContainText("หยิบไม่ได้ช่วงกี่โมงครับ?");
+  await expect(question).toContainText("เตรียมของไม่ได้ช่วงกี่โมงครับ?");
   await expect(page.locator("#desk-plans .score")).toHaveCount(0);
   await question.getByLabel("ตอบคำถามนี้").fill(reply);
   await question.getByRole("button", { name: "เพิ่มคำตอบแล้วเช็กใหม่" }).click();

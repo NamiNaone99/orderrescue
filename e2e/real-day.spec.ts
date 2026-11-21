@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { copy } from "../lib/copy";
 import { planResponseSchema } from "../lib/domain/contracts";
-import { realDaySamples } from "../lib/scenarios/realDayFormat";
 import { resetDemo } from "./helpers";
 
 test.skip(!existsSync("data/derived/day-2011-11-22.json"), "The real-day scenario is not registered in a hero-only build.");
@@ -13,9 +12,10 @@ test("switches to real-day and shows the affected orders with their data attribu
   const scenario = page.getByRole("combobox", { name: copy.scenario.th });
   await expect(scenario).toHaveValue("hero");
   await scenario.selectOption("real-day");
-  const sample = realDaySamples[0];
-  await page.getByRole("button", { name: sample.label_th, exact: true }).click();
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue(sample.text);
+  await page.getByRole("button", { name: "ชั้นวางพัง", exact: true }).click();
+  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue(
+    "คลัง A เตรียมสินค้า 23084 ไม่ได้ช่วง 13:00–18:00 วันนี้ เพราะชั้นวางพัง",
+  );
   const badge = page.locator(".data-badge");
   await expect(badge).toHaveAttribute("href", "/data?scenario=real-day");
   await expect(badge).toContainText(copy.realDerived.th);

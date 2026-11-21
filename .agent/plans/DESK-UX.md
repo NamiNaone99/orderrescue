@@ -12,6 +12,8 @@ Help a first-time dispatcher or judge go from a warehouse message to a decision.
 - [x] (2026-11-21 15:45 +07:00) Implemented the copy, clarification reply and decision summary. Updated the base to `a431bed`.
 - [x] (2026-11-21 15:47 +07:00) Rechecked the browser with live OpenAI and captured desktop and mobile screenshots.
 - [x] (2026-11-21 15:50 +07:00) Full browser suite passed 36 checks against the local production build. The branch is ready for review.
+- [x] (2026-11-21 16:17 +07:00) Verified the plain-Thai demo copy, IBM Plex Sans Thai, and daisyUI after integrating the five cases. All 37 browser checks passed.
+- [ ] Push PR #31, merge to main, and verify the existing Vercel deployment.
 
 ## Surprises & Discoveries
 
@@ -58,3 +60,5 @@ Run QA with memory storage and offline interpretation for deterministic browser 
 2026-11-21 15:49 ICT, Codex. Recorded the live journey and the mobile layout regression check.
 
 2026-11-21 15:50 ICT, Codex. Recorded successful local browser acceptance.
+
+2026-11-21 16:07 ICT, Codex. Integrated the demo cases and added the final release pass. Keep the demo copy in the web layer so the existing hosted seed and evaluation data remain usable.

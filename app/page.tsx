@@ -114,7 +114,7 @@ export default function DeskPage() {
     return "analyse";
   }
   return <div className="shell-width desk dispatch" data-step={step} data-scenario={scenario.id} data-action={mobileAction()} data-touring={touring || undefined}>
-    <div className="desk-heading"><div><div className="heading-line"><h1>{copy.desk.th}</h1><span lang="en">{copy.desk.en}</span></div>
+    <div className="desk-heading"><div><div className="heading-line"><h1>{copy.deskHeading.th}</h1><span lang="en">{copy.desk.en}</span></div>
       <p>{copy.tagline.th}</p></div><div className="desk-heading-tools"><DataBadge scenario={scenario} /><DemoGuide /></div></div>
     {!touring && <DemoCases selected={selectedCase} desk={desk} sample={caseSample} reading={readingChat} booked={!!shownReceipt}
       run={analyse} prepare={type => {

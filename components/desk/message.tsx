@@ -1,4 +1,4 @@
-import { BadgeCheck, Check, ChevronRight, CircleHelp, Clock3, LoaderCircle, MessageSquareText, Pencil, ScanText, Warehouse } from "lucide-react";
+import { BadgeCheck, Check, ChevronRight, CircleHelp, Clock3, LoaderCircle, Pencil, ScanText, Warehouse } from "lucide-react";
 import { useState, type ReactNode, type RefObject } from "react";
 import { copy, polishCopy } from "@/lib/copy";
 import { formatBangkokTime } from "@/lib/domain/time";
@@ -10,11 +10,11 @@ export function MessageInput({ message, samples, edit, analyse, pending, locked,
   analyse: () => void; pending: boolean; locked: boolean; editingDisabled: boolean; inputRef: RefObject<HTMLTextAreaElement | null>;
 }) {
   return <section className="desk-panel message-panel">
-    <div className="panel-heading"><span className="panel-icon"><MessageSquareText aria-hidden /></span>
+    <div className="panel-heading"><span className="panel-icon package-emoji" aria-hidden="true">📦</span>
       <div><h2><label htmlFor="warehouse-message">{copy.message.th}</label></h2><span lang="en">{copy.message.en}</span></div></div>
     <textarea id="warehouse-message" ref={inputRef} className="message-editor" value={message} maxLength={500}
       disabled={locked || editingDisabled} onChange={event => edit(event.target.value)} aria-describedby="privacy-note"
-      placeholder="เช่น คลัง A หยิบ SKU-X ไม่ได้ช่วงบ่าย"
+      placeholder="เช่น คลัง A เตรียม SKU-X ให้ทันรอบบ่ายไม่ได้ครับ"
       onKeyDown={event => { if (event.ctrlKey && event.key === "Enter" && !pending && !locked && message.trim()) { event.preventDefault(); analyse(); } }} />
     <div className="input-meta"><span>ลองใช้ข้อความตัวอย่าง</span><span>{message.length}/500</span></div>
     <div className="sample-chips">{samples.map(sample => <button type="button" key={sample.text}
@@ -37,7 +37,7 @@ export function IncidentCard({ answer, message, sku, catalog, select, locked, ed
     <div className="panel-heading"><span className="panel-icon"><BadgeCheck /></span><div><h2 id="incident-heading">{copy.incident.th}</h2><span lang="en">{copy.incident.en}</span></div><button className="text-action incident-edit" type="button" onClick={edit} disabled={locked}><Pencil aria-hidden />{polishCopy.edit.th}</button></div>
     <dl className="incident-facts">
       <div><dt><Warehouse aria-hidden />คลังที่ติดปัญหา</dt><dd>คลัง {inc.warehouse_id}</dd></div>
-      <div><dt><Clock3 aria-hidden />ช่วงที่หยิบไม่ได้</dt><dd>{formatBangkokTime(inc.window_start)}–{formatBangkokTime(inc.window_end)} น.</dd></div>
+      <div><dt><Clock3 aria-hidden />ช่วงที่เตรียมของไม่ได้</dt><dd>{formatBangkokTime(inc.window_start)}–{formatBangkokTime(inc.window_end)} น.</dd></div>
     </dl>
     <fieldset className="incident-skus"><legend>{inc.sku_ids.length > 1 ? copy.chooseSku.th : copy.item.th}</legend>
       {inc.sku_ids.map(id => <label key={id}>{inc.sku_ids.length > 1 && <input type="radio" name="incident-sku" value={id}

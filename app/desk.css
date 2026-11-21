@@ -67,8 +67,20 @@
 .plan-start h3 { font-weight: 700; }
 .plan-start p,.decision-context,.decision-scope,.line-extra-cost { color: var(--muted-foreground); font-size: 14px; }
 .plan-start p { text-wrap: pretty; }
-.decision-summary { margin-top: 14px; padding: 12px 16px; background: #e7f3ec; border: 1px solid #a8c9b9; border-radius: 10px; color: var(--ink-green); }
-.decision-lead { font-size: clamp(18px, 2vw, 23px); text-wrap: balance; font-variant-numeric: tabular-nums; }
+.dispatch :is(.du-alert, .du-badge) {
+  --border: 1px;
+  --color-base-100: var(--card);
+  --color-base-200: var(--muted);
+  --color-base-content: var(--foreground);
+  --color-success: var(--ink-green);
+  --color-warning: #79470d;
+  --radius-box: 12px;
+  --radius-selector: 9999px;
+}
+.decision-summary { display: block; margin-top: 14px; border-inline-start: 4px solid var(--primary); line-height: 1.6; }
+.decision-summary .decision-scope { margin-bottom: 7px; }
+.package-emoji { font-size: 19px; line-height: 1; }
+.decision-lead { font-size: clamp(18px, 2vw, 23px); line-height: 1.35; text-wrap: balance; font-variant-numeric: tabular-nums; }
 .decision-context,.line-extra-cost { margin-top: 4px; }
 .loss-estimate { margin-top: 5px; }
 .loss-estimate summary { cursor: pointer; font-size: 14px; min-height: 40px; align-content: center; font-weight: 600; }

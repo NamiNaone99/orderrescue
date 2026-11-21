@@ -126,7 +126,7 @@ docs/                     specs, CODEX_LOG.md, codex-log/ (one T<nn>.md per task
 
 ## UI quality bar
 
-- Follow `docs/UI_SPEC.md`: tokens, Noto Sans Thai, tabular numbers, Thai primary copy with English secondary.
+- Follow `docs/UI_SPEC.md`: tokens, IBM Plex Sans Thai, tabular numbers, Thai primary copy with English secondary.
 - Every screen has empty, loading, error, stale, partial and booked states. No dead buttons, no raw JSON, no layout shift on load.
 - Keyboard-operable end to end, visible focus, WCAG 2.1 AA contrast, zero axe violations on the desk and the confirm dialog.
 - Usable at 1280x720 (projector) and 390 px wide (phone).

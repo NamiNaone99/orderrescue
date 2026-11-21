@@ -9,11 +9,11 @@ type Clarification = Extract<ValidatedInterpretation, { outcome: "clarification"
 type About = Clarification["clarification"]["about"];
 
 const questions: Record<About, string> = {
-  warehouse: "คลังไหนหยิบสินค้าไม่ได้คะ",
-  sku: "สินค้าที่หยิบไม่ได้มีรหัส SKU อะไรบ้างคะ",
-  time: "คลังหยิบสินค้าไม่ได้ตั้งแต่กี่โมงถึงกี่โมงคะ",
+  warehouse: "คลังไหนเตรียมของไม่ทันรอบส่งคะ",
+  sku: "สินค้าไหนที่เตรียมไม่ทันคะ ขอรหัส SKU ด้วยค่ะ",
+  time: "คลังเตรียมของไม่ได้ตั้งแต่กี่โมงถึงกี่โมงคะ",
   conflict: "ข้อมูลในข้อความขัดกันค่ะ ข้อมูลใดถูกต้องคะ",
-  other: "ช่วยระบุคลัง รหัสสินค้า และช่วงเวลาที่หยิบไม่ได้อีกครั้งได้ไหมคะ",
+  other: "ขอชื่อคลัง รหัสสินค้า และช่วงที่เตรียมของไม่ได้อีกครั้งได้ไหมคะ",
 };
 
 export class InvalidMessageError extends Error {

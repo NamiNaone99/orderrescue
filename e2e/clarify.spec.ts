@@ -9,7 +9,7 @@ test("clarification leaves no plan until the operator enters a valid incident ma
   page.on("request", req => { if (new URL(req.url()).pathname === "/api/interpret") interpretations++; });
   await page.goto("/?scenario=hero");
   await page.getByRole("button", { name: "ข้อมูลไม่ครบ", exact: true }).click();
-  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("ของตัวนั้นหยิบไม่ได้นะบ่ายนี้");
+  await expect(page.getByLabel(copy.message.th, { exact: true })).toHaveValue("ของตัวนี้เตรียมไม่ทันรอบบ่ายครับ");
   const response = page.waitForResponse(reply => new URL(reply.url()).pathname === "/api/interpret" && reply.request().method() === "POST");
   await page.getByRole("button", { name: copy.analyse.th }).click();
   const reply = await response;

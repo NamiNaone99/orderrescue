@@ -14,7 +14,7 @@ test("a warehouse message opens the outage, then a confirmed delay makes the 2/2
   const draft = feed.locator("#chat-message"),
     read = feed.locator("#chat-read");
   await feed.locator("#chat-sender").selectOption("A");
-  await draft.fill("คลัง A งดหยิบ SKU-X รอบบ่ายวันนี้");
+  await draft.fill("คลัง A เตรียม SKU-X ให้ทันรอบบ่ายวันนี้ไม่ได้ครับ");
   await read.click();
   const scores = page.locator("#desk-plans .score");
   await expect(scores).toHaveText(["1/2", "2/2"]);
