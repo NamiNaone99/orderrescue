@@ -113,7 +113,7 @@ The frozen implementation at `17a9dc5` had five P2 limitations. T14 closed F6 wi
 
 ### Not built
 
-Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The `/built-with-codex` page currently shows a placeholder. The build evidence is in the logs below.
+Per-visitor workspaces, general stock or order editing, multi-SKU joint planning, customer notifications and chat integrations are outside this implementation. Predefined demo events can change stock readiness. The [build evidence page](https://orderrescue.vercel.app/built-with-codex) links the task timeline, planner prompt, pull requests and tests.
 
 ### Accessibility evidence
 
